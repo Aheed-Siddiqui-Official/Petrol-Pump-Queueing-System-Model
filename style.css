@@ -1,0 +1,563 @@
+/* ==========================================================================
+   PETROL PUMP QUEUE CALCULATOR - DARK THEME (SLOVNAFT NIGHT PALETTE)
+   Inspired directly by theme.jpg (Deep midnight blue, neon yellow, sleek black)
+   ========================================================================== */
+
+:root {
+  /* Color Tokens from theme.jpg */
+  --bg-deep: #060a17;
+  --bg-surface: rgba(13, 20, 38, 0.85);
+  --bg-surface-elevated: rgba(20, 30, 56, 0.75);
+  --bg-input: #0a1020;
+  
+  --ink: #f8fafc;
+  --ink-secondary: #cbd5e1;
+  --muted: #8e9bb0;
+  
+  /* Luminous Neon Yellow & Gold Accents from canopy & pumps */
+  --accent: #ffd500;
+  --accent-light: #ffe55c;
+  --accent-dark: #ccaa00;
+  --accent-glow: rgba(255, 213, 0, 0.35);
+  --accent-subtle: rgba(255, 213, 0, 0.12);
+  
+  /* Borders & Dividers */
+  --line: rgba(255, 213, 0, 0.22);
+  --line-subtle: rgba(255, 255, 255, 0.09);
+  
+  /* State Colors */
+  --cyan: #38bdf8;
+  --hot: #ff3b30;
+  --hot-glow: rgba(255, 59, 48, 0.45);
+  --success: #10b981;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font: 15px/1.55 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: 
+    radial-gradient(circle at 50% 0%, rgba(20, 35, 75, 0.6) 0%, transparent 65%),
+    linear-gradient(180deg, rgba(6, 10, 23, 0.88) 0%, rgba(4, 7, 16, 0.97) 50%, #03050b 100%),
+    url('theme.jpg') no-repeat top center / 100% auto fixed;
+  background-color: var(--bg-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 20px 64px;
+}
+
+/* Header Styling */
+header {
+  margin-bottom: 28px;
+  text-align: left;
+  border-bottom: 1px solid var(--line-subtle);
+  padding-bottom: 20px;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: rgba(255, 213, 0, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  box-shadow: 0 0 16px var(--accent-subtle);
+}
+
+header h1 {
+  margin: 0 0 6px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+header h1 span {
+  color: var(--accent);
+  text-shadow: 0 0 14px var(--accent-glow);
+}
+
+header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 720px;
+}
+
+/* Grid Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.18fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Glassmorphism Panels */
+.panel {
+  background: var(--bg-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+.panel h3 {
+  margin: 24px 0 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+/* Form Controls */
+label {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+select, input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  font: inherit;
+  color: #ffffff;
+  background: var(--bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+select option {
+  background: #0d1527;
+  color: #ffffff;
+}
+
+select:focus, input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #0e172e;
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+fieldset {
+  border: 1px solid rgba(255, 213, 0, 0.22);
+  border-radius: var(--radius-md);
+  margin: 0 0 18px;
+  padding: 14px 16px 4px;
+  background: rgba(10, 16, 32, 0.45);
+}
+
+legend {
+  padding: 0 8px;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--accent);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--accent-subtle);
+}
+
+/* Buttons */
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+button {
+  padding: 11px 20px;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Primary Action - Slovnaft Neon Yellow */
+#calcBtn {
+  background: var(--accent);
+  color: #050811;
+  border: 1px solid var(--accent);
+  box-shadow: 0 4px 18px var(--accent-glow);
+  flex: 1 1 auto;
+}
+
+#calcBtn:hover {
+  background: var(--accent-light);
+  box-shadow: 0 6px 24px rgba(255, 213, 0, 0.6);
+  transform: translateY(-1px);
+}
+
+#calcBtn:active {
+  transform: translateY(0);
+}
+
+/* Ghost Buttons - Dark Glass */
+button.ghost {
+  color: var(--ink-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+button.ghost:hover {
+  background: rgba(255, 213, 0, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-subtle);
+}
+
+/* Alert / Message */
+.message {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.message.error {
+  color: #ff9999;
+  background: rgba(255, 59, 48, 0.12);
+  border: 1px solid rgba(255, 59, 48, 0.4);
+  box-shadow: 0 0 16px var(--hot-glow);
+}
+
+/* Gauge Box (Utilization Indicator) */
+#gaugeBox {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: rgba(8, 14, 28, 0.7);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+}
+
+.gaugeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ink-secondary);
+}
+
+#gaugeText {
+  color: var(--accent);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.gauge {
+  height: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#gaugeFill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #10b981 0%, #ffd500 70%, #ff8800 100%);
+  border-radius: 10px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+#gaugeFill.hot {
+  background: linear-gradient(90deg, #ff8800 0%, #ff3b30 100%);
+  box-shadow: 0 0 16px var(--hot-glow);
+}
+
+/* Result Cards Grid */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: var(--line);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 12px var(--accent-subtle);
+}
+
+.card span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+.card strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.card small {
+  font-weight: 500;
+  color: var(--accent);
+  font-size: 0.82rem;
+  margin-left: 3px;
+}
+
+/* Mathematical Derivation Steps */
+.steps {
+  background: #070c18;
+  border: 1px solid rgba(255, 213, 0, 0.2);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-family: "Consolas", "Fira Code", "Courier New", monospace;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  overflow-x: auto;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.steps div {
+  padding: 5px 0;
+  white-space: nowrap;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.steps div:last-child {
+  border-bottom: none;
+}
+
+.steps div:hover {
+  color: var(--accent);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #060a17;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 213, 0, 0.25);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 213, 0, 0.5);
+}
+
+/* Theory & Formula Reference Section */
+.theory-panel {
+  margin-top: 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 213, 0, 0.2);
+}
+
+.theory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.theory-sub {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.legend-toggle {
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.theory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.theory-grid.collapsed {
+  display: none;
+}
+
+.theory-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.theory-card:hover {
+  border-color: rgba(255, 213, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.theory-card-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: rgba(255, 213, 0, 0.1);
+  border: 1px solid rgba(255, 213, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.theory-card h4 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.formula-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.86rem;
+}
+
+.formula-list li {
+  line-height: 1.45;
+  color: var(--ink-secondary);
+}
+
+.formula-list code {
+  display: block;
+  font-family: "Consolas", "Courier New", monospace;
+  color: var(--accent);
+  background: rgba(10, 16, 32, 0.7);
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin-top: 3px;
+  border: 1px solid rgba(255, 213, 0, 0.15);
+  font-size: 0.82rem;
+}
+
+.formula-list small {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* Active formula item highlighting */
+.formula-item {
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+}
+
+.formula-item.active-formula {
+  background: rgba(255, 213, 0, 0.12);
+  border-left: 3px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent-subtle);
+}
+
+.formula-item.active-formula strong {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #gaugeFill { transition: none; }
+}
