@@ -1,139 +1,143 @@
 ================================================================================
-       PETROL PUMP QUEUE SIMULATOR - SIMPLE PROJECT REPORT & VIVA GUIDE
+  PETROL PUMP SINGLE-SERVER QUEUE SIMULATOR - PROJECT REPORT & VIVA GUIDE
 ================================================================================
 
 --------------------------------------------------------------------------------
 1. WHAT IS THIS PROJECT? (IN 3 SIMPLE SENTENCES)
 --------------------------------------------------------------------------------
-This project is a web-based Queueing Simulator for a Petrol Pump station.
-It calculates how long cars have to wait in line, how long they spend at the pump,
-and how busy the petrol pumps are. It uses real numbers recorded from 300 cars at
-a real petrol station and tests 5 different queueing formulas.
+This project is a web-based Single-Server Queueing Simulator for a Petrol Pump.
+It calculates how long cars wait in line, how long they spend at the pump,
+and how busy the pump is under 3 classical single-server queueing models.
+Users and teachers can enter custom arrival and service parameters directly to
+test any scenario.
 
 --------------------------------------------------------------------------------
 2. HOW THE SOFTWARE WORKS (SIMPLE ARCHITECTURE)
 --------------------------------------------------------------------------------
-The software has 3 parts:
+The software has 3 clean parts:
 
 1. FRONTEND (User Interface):
-   - index.html & style.css: A dark, modern dashboard inspired by a night-time
-     petrol station.
-   - app.js: Reads your inputs (arrival time, service time, number of pumps) and
-     sends them to the backend server.
+   - index.html & style.css: Modern dark-themed dashboard inspired by an
+     illuminated petrol station at night.
+   - app.js: Reads user-entered parameters (arrival time/rate, service time/rate,
+     and standard deviations) and calculates results via backend REST API or
+     client-side engine.
 
 2. BACKEND (Express Server):
-   - server.js: A lightweight Node.js server. When you click "Calculate", it
-     receives your numbers, runs the math, and sends back the results as JSON.
+   - server.js: A lightweight Node.js Express server that serves the UI and
+     dispatches calculation requests to the queueing engine via REST API.
 
 3. CALCULATION ENGINE (The Math):
-   - queueModels.js: Contains the queueing math equations.
-   - petrolData.js: Contains the real dataset numbers measured at the petrol pump.
+   - queueModels.js: Pure mathematical engine for single-server models (M/M/1,
+     M/G/1, and G/G/1) providing step-by-step formula substitutions.
 
 --------------------------------------------------------------------------------
-3. THE REAL DATASET USED
+3. DATA INPUT & OPERATIONAL DYNAMICS
 --------------------------------------------------------------------------------
-We observed 300 vehicles over 6 days (50 vehicles per day):
+The user/teacher can enter values in seconds, minutes, or hours, either as
+"Mean Time" or as "Rate" (vehicles per time unit):
 
-- Average Arrival Time : 40.15 seconds between cars
-- Average Service Time : 39.94 seconds to fuel a car
-- Standard Deviation   : ~23.5 seconds (capturing variations: some cars buy more
-                         petrol, some drivers pay faster)
+- Arrival Input : Mean inter-arrival time (or arrival rate λ)
+- Service Input : Mean service time (or service rate μ)
+- Variations    : Standard deviation for arrival (G/G/1) and service (M/G/1, G/G/1)
 
-IMPORTANT POINT TO TELL YOUR TEACHER:
-"Cars arrive every 40.15 seconds, but fueling takes 39.94 seconds.
-With only 1 pump, utilization is 99.5%! That means 1 pump is almost overloaded
-and the line becomes huge. Adding a 2nd pump cuts the load in half (~50%) and
-eliminates the long queue."
+EXAMPLE TEST CASE TO DEMONSTRATE TO YOUR TEACHER:
+- Enter Arrival Mean Time = 45 seconds (λ = 1.33 cars/minute)
+- Enter Service Mean Time = 30 seconds (μ = 2.00 cars/minute)
+- Result:
+  * Utilization: ρ = 30 / 45 = 0.6667 (66.67% busy)
+  * System is stable (ρ < 1.0) and queue operates smoothly.
+
+BOTTLENECK TEST CASE (SHOWING SATURATION):
+- If you enter Arrival Mean Time = 40 seconds and Service Mean Time = 39 seconds:
+  * ρ = 39 / 40 = 0.975 (97.5% utilization)
+  * Notice how queue length (Lq) and waiting time (Wq) shoot up dramatically!
 
 --------------------------------------------------------------------------------
-4. KEY SYMBOLS YOU MUST KNOW (TEACHER WILL ASK THESE!)
+4. KEY SYMBOLS YOU MUST KNOW (TEACHER VIVA CHEAT-SHEET)
 --------------------------------------------------------------------------------
 Symbol   What it Means                  In Plain English
 --------------------------------------------------------------------------------
-lambda   Arrival Rate                   How many cars arrive per minute/hour
-mu       Service Rate                   How many cars one pump can fuel per min
-c        Number of Pumps                How many pumps are working (1, 2, 3...)
-rho      Pump Utilization               How busy the pump is (must be < 100%)
+lambda   Arrival Rate                   How many cars arrive per unit time (1 / Mean Arrival)
+mu       Service Rate                   How many cars the pump can fuel per unit time (1 / Mean Service)
+rho      Pump Utilization               How busy the pump is: rho = lambda / mu (must be < 1.0)
 Lq       Queue Length                   Average number of cars WAITING in line
-L        System Length                  Average number of cars in the whole station
-Wq       Waiting Time in Queue          How many minutes a driver waits in line
-W        Total Time in System           Waiting time + Fueling time
-P0       Empty Probability              Chance the petrol station has zero cars
+L        System Length                  Average total number of cars at the station
+Wq       Waiting Time in Queue          Average time a driver waits in line
+W        Total Time in System           Waiting time + Fueling time: W = Wq + (1 / mu)
+P0       Empty Probability              Chance the station has zero cars: P0 = 1 - rho
 
 STABILITY RULE:
-"rho must be LESS than 1 (rho < 1). If rho >= 1, cars arrive faster than pumps
-can fuel them, and the queue grows infinitely large."
+"rho must be strictly LESS than 1 (rho < 1). If rho >= 1, cars arrive faster
+than the pump can fuel them, meaning the queue will grow indefinitely."
 
 LITTLE'S LAW:
-- L  = lambda * W   (Total cars = Arrival rate * Total time)
-- Lq = lambda * Wq  (Cars waiting = Arrival rate * Waiting time)
-- W  = Wq + (1 / mu) (Total time = Waiting time + Fueling time)
+- L  = lambda * W   (Total cars = Arrival rate * Total time in system)
+- Lq = lambda * Wq  (Cars waiting = Arrival rate * Waiting time in line)
+- W  = Wq + (1 / mu) (Total time = Waiting time + Service time)
 
 --------------------------------------------------------------------------------
-5. THE 5 QUEUE MODELS (EASY EXPLANATION)
+5. THE 3 SINGLE-SERVER QUEUE MODELS
 --------------------------------------------------------------------------------
 
-MODEL 1: M/M/1 (Single Pump, Simple Random Times)
-- Meaning: 1 pump. Arrivals and service times follow an exponential distribution.
+MODEL 1: M/M/1 (Single Server, Exponential Arrival & Service)
+- Meaning: 1 pump. Both vehicle arrivals and service durations follow memoryless
+  exponential distributions (Poisson process).
 - Formula:
     Lq = rho^2 / (1 - rho)
-- When to use: When arrival and service are purely random with only 1 pump.
+    P0 = 1 - rho
+- When to use: When arrival and service times are purely random.
 
-MODEL 2: M/G/1 (Single Pump, Any Service Variation)
-- Meaning: 1 pump. Arrivals are random, but service has a custom standard deviation.
-- Formula (Pollaczek-Khinchine):
-    Lq = (lambda^2 * sigma^2 + rho^2) / [ 2 * (1 - rho) ]
-- Key Concept: Shows that higher variance (sigma) causes LONGER waiting lines.
+MODEL 2: M/G/1 (Single Server, General Service Distribution with Variance)
+- Meaning: 1 pump. Arrivals are Poisson, but service time has an arbitrary
+  distribution with a custom variance (sigma^2).
+- Formula (Pollaczek-Khinchine Formula):
+    Lq = [ lambda^2 * sigma^2 + rho^2 ] / [ 2 * (1 - rho) ]
+- Key Takeaway: Proves mathematically that higher service time variation (sigma)
+  directly creates longer queues, even if the average service speed is the same.
 
-MODEL 3: G/G/1 (Single Pump, Real-World Data)
-- Meaning: 1 pump. Neither arrival nor service is purely exponential; both have
-  measured averages and standard deviations.
-- Formula (Sakasegawa Approximation):
-    Wq = [ rho / (1 - rho) ] * [ (Ca^2 + Cs^2) / 2 ] * (1 / mu)
-
-MODEL 4: M/M/c (Multiple Pumps, e.g., 2 or more pumps)
-- Meaning: 'c' identical pumps sharing one common line of cars.
-- Formula (Erlang-C):
-    Calculates P(Wait) = chance that all pumps are busy when a car arrives.
-    Lq = [ P(Wait) * rho ] / (1 - rho)
-- Key Concept: Shows how opening more pumps dramatically drops customer waiting time.
-
-MODEL 5: G/G/c (Multiple Pumps, Real-World Data)
-- Meaning: Multiple pumps where arrival and service both have standard deviations.
-- Formula (Sakasegawa Multi-Server):
-    Wq = [ rho^(sqrt(2(c+1)) - 1) / (c * (1 - rho)) ] * [ (Ca^2 + Cs^2) / 2 ] * (1 / mu)
+MODEL 3: G/G/1 (Single Server, General Arrival & General Service)
+- Meaning: 1 pump. Neither arrivals nor service are strictly exponential; both
+  have their own custom mean and standard deviation entered by the user.
+- Formula (Sakasegawa Single-Server Approximation):
+    Ca^2 = (sigma_a / Mean_a)^2
+    Cs^2 = (sigma_s / Mean_s)^2
+    Wq ≈ [ rho / (1 - rho) ] * [ (Ca^2 + Cs^2) / 2 ] * (1 / mu)
+    Lq = lambda * Wq
+- When to use: When testing realistic models using custom standard deviations.
 
 --------------------------------------------------------------------------------
-6. QUICK VIVA / TEACHER QUESTIONS (JUST MEMORIZE THESE 5!)
+6. TOP 5 VIVA QUESTIONS & DIRECT ANSWERS
 --------------------------------------------------------------------------------
 
-Q1: What does Kendall's Notation (e.g., M/M/c) stand for?
+Q1: What does Kendall's Notation mean in M/M/1, M/G/1, and G/G/1?
 Answer:
-"The 1st letter is Arrival type (M = Markovian/Poisson, G = General).
-The 2nd letter is Service type (M = Exponential, G = General).
-The 3rd letter 'c' is the number of pumps."
+"The 1st letter represents arrival distribution ('M' = Markovian/Poisson, 'G' = General).
+The 2nd letter represents service distribution ('M' = Exponential, 'G' = General).
+The number '1' means a single server (one petrol pump)."
 
-Q2: What is 'rho' (Utilization) and why must it be under 1?
+Q2: What is 'rho' (Utilization) and why must it be below 1?
 Answer:
-"rho is how busy the pumps are: rho = lambda / (c * mu). It must be less than 1.
-If rho >= 1, cars enter faster than pumps can serve them, meaning the queue
-never ends and the system is unstable."
+"rho = lambda / mu represents the fraction of time the pump is busy.
+It must be strictly less than 1 (rho < 1) for the queue to reach steady-state.
+If rho >= 1, cars arrive faster than they are serviced, causing infinite queue growth."
 
 Q3: What is Little's Law?
 Answer:
-"Little's Law connects queue length and waiting time: L = lambda * W and
-Lq = lambda * Wq. Total time W is simply waiting time Wq plus service time."
+"Little's Law states L = lambda * W and Lq = lambda * Wq. It directly connects
+the average number of cars in the system to arrival rate and waiting time."
 
-Q4: Why does variance (standard deviation) matter in queueing?
+Q4: What is the Pollaczek-Khinchine formula in M/G/1?
 Answer:
-"The Pollaczek-Khinchine formula proves that even if average service time is
-the same, higher variation (inconsistent fueling times) makes lines much longer."
+"It calculates queue length for general service times:
+Lq = (lambda^2 * sigma^2 + rho^2) / [2 * (1 - rho)].
+It shows that variance in fueling times (sigma^2) directly increases queue delay."
 
-Q5: What was your main finding from the real petrol pump data?
+Q5: What happens when arrival rate gets very close to service rate?
 Answer:
-"With 1 pump, arrival time (40.15s) and service time (39.94s) are nearly equal,
-giving 99.5% utilization, causing extreme delays. Having 2 pumps reduces
-utilization to ~50% and eliminates long queues."
+"As rho approaches 1.0, the denominator (1 - rho) approaches 0.
+This causes queue length (Lq) and waiting time (Wq) to increase exponentially,
+demonstrating the bottleneck effect in single-server systems."
 
 ================================================================================
                                END OF REPORT

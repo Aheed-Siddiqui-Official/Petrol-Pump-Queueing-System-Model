@@ -19,18 +19,8 @@
 
   <div class="layout">
     <section class="panel">
-      <div class="two">
-        <label>Server type
-          <select id="serverType">
-            <option value="single">Single server</option>
-            <option value="multi">Multi server</option>
-          </select>
-        </label>
-        <label>Queue model <select id="model"></select></label>
-      </div>
-
-      <label id="serversRow" hidden>Number of pumps (servers)
-        <input id="servers" type="number" min="2" max="50" value="2">
+      <label>Queue model (Single Server)
+        <select id="model"></select>
       </label>
 
       <fieldset>
@@ -68,7 +58,6 @@
       <div class="buttons">
         <button id="calcBtn" type="button">Calculate</button>
         <button id="clearBtn" type="button" class="ghost">Clear</button>
-        <button id="loadBtn" type="button" class="ghost">Load petrol pump data</button>
       </div>
     </section>
 
@@ -103,69 +92,54 @@
         <div class="theory-card-badge">FUNDAMENTALS</div>
         <h4>Core Queueing Concepts</h4>
         <ul class="formula-list">
-          <li><strong>Arrival Rate (λ):</strong> <code>λ = 1 / Mean Arrival Time</code></li>
+          <li><strong>Arrival Rate (λ):</strong> <code>λ = 1 / Mean Inter-Arrival Time</code></li>
           <li><strong>Service Rate (μ):</strong> <code>μ = 1 / Mean Service Time</code></li>
-          <li><strong>Utilization (ρ):</strong> <code>ρ = λ / (c × μ)</code> (Must be &lt; 1.0)</li>
-          <li><strong>Little's Law:</strong> <code>L = λ × W</code> &amp; <code>Lq = λ × Wq</code></li>
-          <li><strong>Total Time:</strong> <code>W = Wq + (1 / μ)</code></li>
+          <li><strong>Utilization (ρ):</strong> <code>ρ = λ / μ</code> <small>(Must be &lt; 1.0 for steady-state stability)</small></li>
+          <li><strong>Little's Law:</strong> <code>L = λ × W   |   Lq = λ × Wq</code></li>
+          <li><strong>System Relationship:</strong> <code>W = Wq + (1 / μ)   |   L = Lq + ρ</code></li>
         </ul>
       </div>
 
       <!-- Card 2: Single Server Models -->
       <div class="theory-card" id="card-single">
         <div class="theory-card-badge">SINGLE PUMP (c = 1)</div>
-        <h4>M/M/1 &amp; M/G/1 Formulas</h4>
+        <h4>M/M/1, M/G/1 &amp; G/G/1 Formulas</h4>
         <ul class="formula-list">
           <li class="formula-item" data-model="MM1">
-            <strong>M/M/1 (Exponential):</strong>
+            <strong>M/M/1 (Poisson Arrivals, Exponential Service):</strong>
             <code>Lq = ρ² / (1 - ρ)</code>
-            <small>Empty system chance: <code>P₀ = 1 - ρ</code></small>
+            <code>Wq = Lq / λ = ρ / [μ(1 - ρ)]</code>
+            <small>Probability system is idle: <code>P₀ = 1 - ρ</code></small>
           </li>
           <li class="formula-item" data-model="MG1">
-            <strong>M/G/1 (Pollaczek–Khinchine):</strong>
+            <strong>M/G/1 (Pollaczek–Khinchine Formula):</strong>
             <code>Lq = (λ²σ² + ρ²) / [2(1 - ρ)]</code>
-            <small>Proves service variance (σ²) directly lengthens the queue.</small>
+            <code>Wq = Lq / λ</code>
+            <small>Proves service variance (σ²) directly lengthens queue size and wait time.</small>
           </li>
           <li class="formula-item" data-model="GG1">
-            <strong>G/G/1 (Sakasegawa Approx):</strong>
+            <strong>G/G/1 (Sakasegawa Single-Server Approx):</strong>
             <code>Wq ≈ [ρ / (1 - ρ)] × [(Ca² + Cs²) / 2] × (1/μ)</code>
+            <code>Lq = λ × Wq</code>
+            <small>Variation coefficients: <code>Ca² = (σa / Mean_a)²,  Cs² = (σs / Mean_s)²</code></small>
           </li>
         </ul>
       </div>
 
-      <!-- Card 3: Multi Server Models -->
-      <div class="theory-card" id="card-multi">
-        <div class="theory-card-badge">MULTI PUMP (c ≥ 2)</div>
-        <h4>M/M/c &amp; G/G/c Formulas</h4>
-        <ul class="formula-list">
-          <li class="formula-item" data-model="MMc">
-            <strong>M/M/c (Erlang-C Delay Formula):</strong>
-            <code>P(Wait) = [aᶜ / (c!(1 - ρ))] × P₀</code>
-            <code>Lq = P(Wait) × ρ / (1 - ρ)</code>
-            <small>Offered load: <code>a = λ / μ</code></small>
-          </li>
-          <li class="formula-item" data-model="GGc">
-            <strong>G/G/c (Sakasegawa Multi-Server):</strong>
-            <code>Wq ≈ [ρ^(√(2(c+1))-1) / (c(1 - ρ))] × [(Ca² + Cs²) / 2] × (1/μ)</code>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Card 4: Dataset & Findings -->
+      <!-- Card 3: System Stability & Operating Rules -->
       <div class="theory-card">
-        <div class="theory-card-badge">EMPIRICAL DATASET</div>
-        <h4>Petrol Pump Data (300 Cars)</h4>
+        <div class="theory-card-badge">OPERATING RULES</div>
+        <h4>Stability &amp; Capacity Insights</h4>
         <ul class="formula-list">
-          <li><strong>Mean Arrival:</strong> <code>40.15s</code> (SD = 23.54s)</li>
-          <li><strong>Mean Service:</strong> <code>39.94s</code> (SD = 23.45s)</li>
-          <li><strong>1 Pump (c = 1):</strong> <code>ρ = 99.49%</code> (Near saturation, huge queue)</li>
-          <li><strong>2 Pumps (c = 2):</strong> <code>ρ = 49.75%</code> (Optimal, queue eliminated)</li>
-          <li><strong>Management Insight:</strong> Adding a 2nd pump cuts wait times from hours to seconds.</li>
+          <li><strong>Kendall's Notation:</strong> <code>A / B / 1</code> (Arrival / Service / Single Pump)</li>
+          <li><strong>Stable State:</strong> <code>ρ = λ / μ &lt; 1.0</code> (Queue reaches steady-state equilibrium)</li>
+          <li><strong>Bottleneck / Saturation:</strong> <code>If λ ≥ μ (ρ ≥ 1.0)</code>, cars arrive faster than service, queue grows infinitely</li>
+          <li><strong>Variance Penalty:</strong> Higher standard deviation (σ) increases line delay even if average speed is constant</li>
+          <li><strong>Discipline:</strong> First-In, First-Out (FIFO) queue with infinite buffer capacity</li>
         </ul>
       </div>
     </div>
   </section>
-<script src="petrolData.js"></script>
 <script src="queueModels.js"></script>
 <script src="app.js"></script>
 </body>

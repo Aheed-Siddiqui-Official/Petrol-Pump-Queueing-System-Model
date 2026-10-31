@@ -1,14 +1,15 @@
 // Frontend: reads the form, sends it to the backend, and shows the answer.
 const $ = (id) => document.getElementById(id);
 
-const MODELS = {
-  single: [['MM1', 'M/M/1'], ['MG1', 'M/G/1'], ['GG1', 'G/G/1']],
-  multi:  [['MMc', 'M/M/c'], ['GGc', 'G/G/c']]
-};
+const MODELS = [
+  ['MM1', 'M/M/1 (Poisson arrivals, Exponential service)'],
+  ['MG1', 'M/G/1 (Poisson arrivals, General service variance)'],
+  ['GG1', 'G/G/1 (General arrivals, General service)']
+];
 
-// Fill the model list for the chosen server type
+// Fill the model list
 function fillModels() {
-  $('model').innerHTML = MODELS[$('serverType').value]
+  $('model').innerHTML = MODELS
     .map(([value, text]) => `<option value="${value}">${text}</option>`).join('');
 }
 
@@ -16,9 +17,8 @@ function fillModels() {
 function refreshForm() {
   const m = $('model').value;
   const generalArrival = m.startsWith('GG');
-  const generalService = m !== 'MM1' && m !== 'MMc';
+  const generalService = m !== 'MM1';
 
-  $('serversRow').hidden = $('serverType').value !== 'multi';
   $('arrSdRow').hidden = !generalArrival;
   $('svcSdRow').hidden = !generalService;
   $('arrLegend').textContent = generalArrival ? 'Arrival (general distribution)' : 'Arrival (Poisson)';
@@ -44,7 +44,6 @@ const num = (id) => ($(id).value === '' ? null : Number($(id).value));
 function readForm() {
   return {
     model: $('model').value,
-    servers: num('servers'),
     displayUnit: $('displayUnit').value,
     arrival: { unit: $('arrUnit').value, type: $('arrType').value, value: num('arrValue'), sd: num('arrSd') },
     service: { unit: $('svcUnit').value, type: $('svcType').value, value: num('svcValue'), sd: num('svcSd') }
@@ -78,17 +77,6 @@ function clearResults() {
   $('cards').innerHTML = '';
   $('gaugeBox').hidden = true;
   $('stepsBox').hidden = true;
-}
-
-function applyPetrolData(d) {
-  for (const [side, src] of [['arr', d.interArrival], ['svc', d.service]]) {
-    $(side + 'Unit').value = 'seconds';
-    $(side + 'Type').value = 'time';
-    $(side + 'Value').value = src.meanSec;
-    $(side + 'Sd').value = src.sdSec;
-  }
-  refreshForm();
-  show(`Loaded ${d.vehicles} vehicles from ${d.days} days. Choose a model and press Calculate.`, false);
 }
 
 async function calculate() {
@@ -125,35 +113,15 @@ async function calculate() {
   show('Could not calculate results. Please check your inputs.', true);
 }
 
-async function loadPetrolData() {
-  try {
-    const res = await fetch('/api/petrol-data');
-    if (res.ok) {
-      const d = await res.json();
-      applyPetrolData(d);
-      return;
-    }
-  } catch (err) {
-    // Fallback if accessed on static host
-  }
-  if (window.petrolData) {
-    applyPetrolData(window.petrolData);
-    return;
-  }
-  show('Could not load petrol pump data.', true);
-}
-
 function clearForm() {
   for (const id of ['arrValue', 'arrSd', 'svcValue', 'svcSd']) $(id).value = '';
   clearResults();
   show('Enter your values and press Calculate.', false);
 }
 
-$('serverType').addEventListener('change', () => { fillModels(); refreshForm(); });
 for (const id of ['model', 'arrUnit', 'arrType', 'svcUnit', 'svcType']) $(id).addEventListener('change', refreshForm);
 $('calcBtn').addEventListener('click', calculate);
 $('clearBtn').addEventListener('click', clearForm);
-$('loadBtn').addEventListener('click', loadPetrolData);
 
 const toggleBtn = $('toggleTheoryBtn');
 if (toggleBtn) {

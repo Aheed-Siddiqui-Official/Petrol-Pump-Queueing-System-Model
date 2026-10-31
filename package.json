@@ -1,7 +1,7 @@
 {
   "name": "petrol-queue-calculator",
   "version": "1.0.0",
-  "description": "Queueing calculator (M/M/1, M/G/1, G/G/1, M/M/c, G/G/c) for a petrol pump system",
+  "description": "Single-server queueing calculator (M/M/1, M/G/1, G/G/1) for a petrol pump system",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": { "express": "^4.19.2" }
