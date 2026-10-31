@@ -5,140 +5,198 @@
 --------------------------------------------------------------------------------
 1. WHAT IS THIS PROJECT? (IN 3 SIMPLE SENTENCES)
 --------------------------------------------------------------------------------
-This project is a web-based Single-Server Queueing Simulator for a Petrol Pump.
-It calculates how long cars wait in line, how long they spend at the pump,
-and how busy the pump is under 3 classical single-server queueing models.
-Users and teachers can enter custom arrival and service parameters directly to
-test any scenario.
+This project is an engineering queueing simulation web application for a Petrol Pump.
+It calculates customer wait times, queue lengths, and pump utilization across 3 classical
+single-server stochastic queueing models (M/M/1, M/G/1, and G/G/1).
+The backend is built with modern C# ASP.NET Core (.NET 8) serving a responsive,
+custom-themed web frontend directly from wwwroot.
 
 --------------------------------------------------------------------------------
-2. HOW THE SOFTWARE WORKS (SIMPLE ARCHITECTURE)
+2. HOW TO RUN THE SOFTWARE (STEP-BY-STEP INSTRUCTIONS)
 --------------------------------------------------------------------------------
-The software has 3 clean parts:
+PREREQUISITE:
+- .NET 8 SDK must be installed (verified: Version 8.0.427).
 
-1. FRONTEND (User Interface):
-   - index.html & style.css: Modern dark-themed dashboard inspired by an
-     illuminated petrol station at night.
-   - app.js: Reads user-entered parameters (arrival time/rate, service time/rate,
-     and standard deviations) and calculates results via backend REST API or
-     client-side engine.
+HOW TO START THE APPLICATION:
+Open PowerShell or your Terminal inside this project folder:
+  c:\Users\M.Aheed Siddiqui\OneDrive\Desktop\UNIVERSITY\ASSIGNMENTS\6_Semester\Simulation\Model
 
-2. BACKEND (Express Server):
-   - server.js: A lightweight Node.js Express server that serves the UI and
-     dispatches calculation requests to the queueing engine via REST API.
+Run the following command:
+  dotnet run
 
-3. CALCULATION ENGINE (The Math):
-   - queueModels.js: Pure mathematical engine for single-server models (M/M/1,
-     M/G/1, and G/G/1) providing step-by-step formula substitutions.
+(Note: If your terminal was open prior to installation, run this one-line command to refresh PATH and start):
+  $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User"); dotnet run
+
+OR run using the direct executable path:
+  & 'C:\Program Files\dotnet\dotnet.exe' run
+
+WHAT YOU WILL SEE IN THE TERMINAL:
+  Building...
+  info: Microsoft.Hosting.Lifetime[14]
+        Now listening on: http://localhost:5000
+  info: Microsoft.Hosting.Lifetime[0]
+        Application started. Press Ctrl+C to shut down.
+
+HOW TO ACCESS THE USER INTERFACE:
+1. Open any web browser (Chrome, Edge, Firefox, Brave).
+2. Go to: http://localhost:5000
+3. The dashboard will load automatically.
+
+HOW TO STOP THE SERVER:
+In your terminal window, press Ctrl + C to gracefully shut down the application.
 
 --------------------------------------------------------------------------------
-3. DATA INPUT & OPERATIONAL DYNAMICS
+3. MODERN SOFTWARE ARCHITECTURE (.NET 8 C# BACKEND)
 --------------------------------------------------------------------------------
-The user/teacher can enter values in seconds, minutes, or hours, either as
-"Mean Time" or as "Rate" (vehicles per time unit):
+The project uses a clean, decoupled architecture:
 
-- Arrival Input : Mean inter-arrival time (or arrival rate λ)
-- Service Input : Mean service time (or service rate μ)
-- Variations    : Standard deviation for arrival (G/G/1) and service (M/G/1, G/G/1)
+1. STATIC FRONTEND (Hosted in wwwroot/):
+   - index.html      : Clean single-server interface with real-time formula reference guide.
+   - style.css       : Midnight navy and neon amber theme matching theme.jpg.
+   - app.js          : Form controls, JSON payload submission, gauge & steps renderer.
+   - queueModels.js  : Client-side mathematical engine providing offline resilience.
+   - theme.jpg       : Background artwork for the petrol station theme.
 
-EXAMPLE TEST CASE TO DEMONSTRATE TO YOUR TEACHER:
-- Enter Arrival Mean Time = 45 seconds (λ = 1.33 cars/minute)
-- Enter Service Mean Time = 30 seconds (μ = 2.00 cars/minute)
+2. ASP.NET CORE PIPELINE (Program.cs):
+   - Configures Dependency Injection (DI) for QueueSimulationService.
+   - Enables Cross-Origin Resource Sharing (CORS).
+   - Serves static files and default index.html via UseDefaultFiles() & UseStaticFiles().
+   - Maps REST API endpoints via MapControllers().
+
+3. REST API CONTROLLER (Controllers/QueueController.cs):
+   - [HttpPost("api/calculate")] : Receives user inputs and returns computed metrics.
+   - [HttpGet("api/petrol-data")] : Serves baseline historical empirical distribution stats.
+
+4. SIMULATION SERVICE & MATH ENGINE (Services/QueueSimulationService.cs):
+   - Strongly-typed service implementing IQueueSimulationService.
+   - Normalizes all input units (seconds, minutes, hours) into the user's display unit.
+   - Enforces system stability validation (rho < 1.0).
+   - Generates exact formula substitution steps for transparency.
+
+5. DATA TRANSFER OBJECTS (Models/):
+   - QueueInputModels.cs  : Models request contract (Model, DisplayUnit, Arrival, Service).
+   - QueueResultModels.cs : Models response contract (Results array, Steps array, Error).
+   - PetrolDataPreset.cs  : Holds the 300-vehicle baseline dataset parameters.
+
+--------------------------------------------------------------------------------
+4. DATA INPUT & OPERATIONAL DYNAMICS
+--------------------------------------------------------------------------------
+The user/teacher can enter values in seconds, minutes, or hours, as either:
+- "Mean Time" (e.g. 45 seconds between car arrivals)
+- "Rate" (e.g. 1.33 cars arriving per minute)
+
+INPUT FIELDS:
+- Arrival Side: Mean inter-arrival time / rate (plus standard deviation for G/G/1).
+- Service Side: Mean fueling service time / rate (plus standard deviation for M/G/1 and G/G/1).
+
+DEMO TEST CASES TO SHOW YOUR TEACHER:
+
+Normal Smooth Flow:
+- Arrival Mean Time = 45 seconds (lambda = 1.33 cars/minute)
+- Service Mean Time = 30 seconds (mu = 2.00 cars/minute)
 - Result:
-  * Utilization: ρ = 30 / 45 = 0.6667 (66.67% busy)
-  * System is stable (ρ < 1.0) and queue operates smoothly.
+  * Utilization: rho = 30 / 45 = 0.6667 (66.67% busy)
+  * System is stable (rho < 1.0), short queue, smooth operation.
 
-BOTTLENECK TEST CASE (SHOWING SATURATION):
-- If you enter Arrival Mean Time = 40 seconds and Service Mean Time = 39 seconds:
-  * ρ = 39 / 40 = 0.975 (97.5% utilization)
-  * Notice how queue length (Lq) and waiting time (Wq) shoot up dramatically!
+Bottleneck / Near-Saturation Flow:
+- Arrival Mean Time = 40 seconds
+- Service Mean Time = 38 seconds
+- Result:
+  * Utilization: rho = 38 / 40 = 0.95 (95% busy, gauge turns red)
+  * Queue length (Lq) and wait time (Wq) increase sharply.
+
+Unstable / Infinite Queue Test:
+- Arrival Mean Time = 30 seconds (car arrives every 30s)
+- Service Mean Time = 45 seconds (pump takes 45s to fuel)
+- Result:
+  * rho = 45 / 30 = 1.50 (rho >= 1.0)
+  * System rejects calculation with error:
+    "The system is unstable: utilization rho = 1.5 must be below 1."
 
 --------------------------------------------------------------------------------
-4. KEY SYMBOLS YOU MUST KNOW (TEACHER VIVA CHEAT-SHEET)
+5. KEY SYMBOLS YOU MUST KNOW (TEACHER VIVA CHEAT-SHEET)
 --------------------------------------------------------------------------------
 Symbol   What it Means                  In Plain English
 --------------------------------------------------------------------------------
-lambda   Arrival Rate                   How many cars arrive per unit time (1 / Mean Arrival)
-mu       Service Rate                   How many cars the pump can fuel per unit time (1 / Mean Service)
-rho      Pump Utilization               How busy the pump is: rho = lambda / mu (must be < 1.0)
+lambda   Arrival Rate                   Cars arriving per unit time (1 / Mean Arrival)
+mu       Service Rate                   Cars fueled per unit time (1 / Mean Service)
+rho      Pump Utilization               Fraction of time pump is busy: rho = lambda / mu
 Lq       Queue Length                   Average number of cars WAITING in line
-L        System Length                  Average total number of cars at the station
-Wq       Waiting Time in Queue          Average time a driver waits in line
-W        Total Time in System           Waiting time + Fueling time: W = Wq + (1 / mu)
+L        System Length                  Average total cars at station (in line + at pump)
+Wq       Waiting Time in Queue          Average time a driver waits before fueling starts
+W        Total Time in System           Wait time + Fuel time: W = Wq + (1 / mu)
 P0       Empty Probability              Chance the station has zero cars: P0 = 1 - rho
 
-STABILITY RULE:
-"rho must be strictly LESS than 1 (rho < 1). If rho >= 1, cars arrive faster
-than the pump can fuel them, meaning the queue will grow indefinitely."
+CRITICAL STABILITY CONDITION:
+"rho must be strictly LESS than 1 (rho < 1.0). If rho >= 1.0, arrivals exceed
+pump capacity, causing an infinite queue buildup."
 
 LITTLE'S LAW:
-- L  = lambda * W   (Total cars = Arrival rate * Total time in system)
-- Lq = lambda * Wq  (Cars waiting = Arrival rate * Waiting time in line)
+- L  = lambda * W    (Total cars = Arrival rate * Total time in system)
+- Lq = lambda * Wq   (Cars in queue = Arrival rate * Waiting time in queue)
 - W  = Wq + (1 / mu) (Total time = Waiting time + Service time)
 
 --------------------------------------------------------------------------------
-5. THE 3 SINGLE-SERVER QUEUE MODELS
+6. THE 3 SINGLE-SERVER QUEUE MODELS
 --------------------------------------------------------------------------------
 
 MODEL 1: M/M/1 (Single Server, Exponential Arrival & Service)
-- Meaning: 1 pump. Both vehicle arrivals and service durations follow memoryless
-  exponential distributions (Poisson process).
-- Formula:
+- Description: 1 pump. Arrivals follow a Poisson process; fueling time is Exponential.
+- Formulas:
     Lq = rho^2 / (1 - rho)
     P0 = 1 - rho
-- When to use: When arrival and service times are purely random.
+- Use case: Classic baseline with purely random arrivals and service.
 
 MODEL 2: M/G/1 (Single Server, General Service Distribution with Variance)
-- Meaning: 1 pump. Arrivals are Poisson, but service time has an arbitrary
-  distribution with a custom variance (sigma^2).
+- Description: 1 pump. Arrivals are Poisson, but fueling time has custom standard deviation (sigma).
 - Formula (Pollaczek-Khinchine Formula):
-    Lq = [ lambda^2 * sigma^2 + rho^2 ] / [ 2 * (1 - rho) ]
-- Key Takeaway: Proves mathematically that higher service time variation (sigma)
-  directly creates longer queues, even if the average service speed is the same.
+    Lq = [ lambda^2 * sigma_s^2 + rho^2 ] / [ 2 * (1 - rho) ]
+- Takeaway: Mathematically proves that variability in service time directly increases
+  customer waiting time even if the average service speed remains unchanged.
 
 MODEL 3: G/G/1 (Single Server, General Arrival & General Service)
-- Meaning: 1 pump. Neither arrivals nor service are strictly exponential; both
-  have their own custom mean and standard deviation entered by the user.
+- Description: 1 pump. Both arrival and service distributions have custom standard deviations.
 - Formula (Sakasegawa Single-Server Approximation):
     Ca^2 = (sigma_a / Mean_a)^2
     Cs^2 = (sigma_s / Mean_s)^2
     Wq ≈ [ rho / (1 - rho) ] * [ (Ca^2 + Cs^2) / 2 ] * (1 / mu)
     Lq = lambda * Wq
-- When to use: When testing realistic models using custom standard deviations.
+- Takeaway: Models realistic station operations without restricting to exponential curves.
 
 --------------------------------------------------------------------------------
-6. TOP 5 VIVA QUESTIONS & DIRECT ANSWERS
+7. TOP 5 VIVA QUESTIONS & DIRECT ANSWERS
 --------------------------------------------------------------------------------
 
-Q1: What does Kendall's Notation mean in M/M/1, M/G/1, and G/G/1?
+Q1: Why did you build the backend using ASP.NET Core (.NET 8)?
+Answer:
+"ASP.NET Core (.NET 8) provides high performance, type safety, and clean separation
+of concerns. The C# QueueSimulationService strongly types stochastic calculations,
+while UseDefaultFiles() and UseStaticFiles() allow hosting the web dashboard from wwwroot."
+
+Q2: What is Kendall's Notation in M/M/1, M/G/1, and G/G/1?
 Answer:
 "The 1st letter represents arrival distribution ('M' = Markovian/Poisson, 'G' = General).
 The 2nd letter represents service distribution ('M' = Exponential, 'G' = General).
-The number '1' means a single server (one petrol pump)."
+The number '1' denotes a single server (one petrol pump)."
 
-Q2: What is 'rho' (Utilization) and why must it be below 1?
+Q3: What is 'rho' (Utilization) and why must it be below 1?
 Answer:
 "rho = lambda / mu represents the fraction of time the pump is busy.
 It must be strictly less than 1 (rho < 1) for the queue to reach steady-state.
-If rho >= 1, cars arrive faster than they are serviced, causing infinite queue growth."
+If rho >= 1, vehicles arrive faster than they can be fueled, causing infinite queue growth."
 
-Q3: What is Little's Law?
+Q4: What is Little's Law?
 Answer:
-"Little's Law states L = lambda * W and Lq = lambda * Wq. It directly connects
-the average number of cars in the system to arrival rate and waiting time."
+"Little's Law proves that L = lambda * W and Lq = lambda * Wq. It directly connects
+the average number of cars in the system to the arrival rate and average waiting time."
 
-Q4: What is the Pollaczek-Khinchine formula in M/G/1?
+Q5: What is the significance of the Pollaczek-Khinchine formula in M/G/1?
 Answer:
-"It calculates queue length for general service times:
+"It calculates queue length when service time has variance:
 Lq = (lambda^2 * sigma^2 + rho^2) / [2 * (1 - rho)].
-It shows that variance in fueling times (sigma^2) directly increases queue delay."
-
-Q5: What happens when arrival rate gets very close to service rate?
-Answer:
-"As rho approaches 1.0, the denominator (1 - rho) approaches 0.
-This causes queue length (Lq) and waiting time (Wq) to increase exponentially,
-demonstrating the bottleneck effect in single-server systems."
+It proves that higher variation in fueling times (sigma^2) increases line delays,
+highlighting the need for standardized fueling procedures."
 
 ================================================================================
-                               END OF REPORT
+                                END OF REPORT
 ================================================================================
