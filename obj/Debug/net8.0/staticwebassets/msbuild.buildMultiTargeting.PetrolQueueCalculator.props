@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\PetrolQueueCalculator.props" />
-</Project>

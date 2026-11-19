@@ -102,23 +102,17 @@ public class QueueSimulationService : IQueueSimulationService
         steps.Add($"W = Wq + 1/μ = {F(wq)} + {F(svc.Mean)} = {F(w)} {displayUnit}");
         steps.Add($"L = λ × W = {F(lambda)} × {F(w)} = {F(l)} vehicles");
 
+        var p0 = 1.0 - rho;
+
         var results = new List<QueueMetricItem>
         {
-            new() { Key = "meanIa", Label = "Mean inter-arrival time", Value = arr.Mean, Unit = displayUnit },
-            new() { Key = "meanSv", Label = "Mean service time", Value = svc.Mean, Unit = displayUnit },
-            new() { Key = "lambda", Label = "Arrival rate (λ)", Value = lambda, Unit = $"per {one}" },
-            new() { Key = "mu", Label = "Service rate (μ)", Value = mu, Unit = $"per {one}" },
             new() { Key = "rho", Label = "Utilization (ρ)", Value = rho, Unit = string.Empty },
-            new() { Key = "L", Label = "Vehicles in system (L)", Value = l, Unit = string.Empty },
-            new() { Key = "Lq", Label = "Vehicles in queue (Lq)", Value = lq, Unit = string.Empty },
-            new() { Key = "W", Label = "Time in system (W)", Value = w, Unit = displayUnit },
-            new() { Key = "Wq", Label = "Waiting time (Wq)", Value = wq, Unit = displayUnit }
+            new() { Key = "Lq", Label = "Mean Number in Queue (Lq)", Value = lq, Unit = string.Empty },
+            new() { Key = "Wq", Label = "Mean Wait in Queue (Wq)", Value = wq, Unit = displayUnit },
+            new() { Key = "L", Label = "Mean Number in System (L)", Value = l, Unit = string.Empty },
+            new() { Key = "W", Label = "Mean Wait in System (W)", Value = w, Unit = displayUnit },
+            new() { Key = "p0", Label = "Idle Probability (P0)", Value = p0, Unit = string.Empty }
         };
-
-        if (p0.HasValue)
-        {
-            results.Add(new() { Key = "p0", Label = "System empty (P0)", Value = p0.Value, Unit = string.Empty });
-        }
 
         return new QueueCalculationResponse
         {

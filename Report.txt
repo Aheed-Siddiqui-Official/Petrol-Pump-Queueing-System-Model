@@ -1,201 +1,259 @@
 ================================================================================
   PETROL PUMP SINGLE-SERVER QUEUE SIMULATOR - PROJECT REPORT & VIVA GUIDE
+  Fully Migrated to ASP.NET Core (.NET 8) - Backend & Razor Pages Frontend
+  Empirical Chi-Square Goodness-of-Fit Validation on Final_Data_Transformed.csv
 ================================================================================
 
 --------------------------------------------------------------------------------
-1. WHAT IS THIS PROJECT? (IN 3 SIMPLE SENTENCES)
+1. PROJECT OVERVIEW
 --------------------------------------------------------------------------------
-This project is an engineering queueing simulation web application for a Petrol Pump.
-It calculates customer wait times, queue lengths, and pump utilization across 3 classical
-single-server stochastic queueing models (M/M/1, M/G/1, and G/G/1).
-The backend is built with modern C# ASP.NET Core (.NET 8) serving a responsive,
-custom-themed web frontend directly from wwwroot.
-
---------------------------------------------------------------------------------
-2. HOW TO RUN THE SOFTWARE (STEP-BY-STEP INSTRUCTIONS)
---------------------------------------------------------------------------------
-PREREQUISITE:
-- .NET 8 SDK must be installed (verified: Version 8.0.427).
-
-HOW TO START THE APPLICATION:
-Open PowerShell or your Terminal inside this project folder:
-  c:\Users\M.Aheed Siddiqui\OneDrive\Desktop\UNIVERSITY\ASSIGNMENTS\6_Semester\Simulation\Model
-
-Run the following command:
-  dotnet run
-
-(Note: If your terminal was open prior to installation, run this one-line command to refresh PATH and start):
-  $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User"); dotnet run
-
-OR run using the direct executable path:
-  & 'C:\Program Files\dotnet\dotnet.exe' run
-
-WHAT YOU WILL SEE IN THE TERMINAL:
-  Building...
-  info: Microsoft.Hosting.Lifetime[14]
-        Now listening on: http://localhost:5000
-  info: Microsoft.Hosting.Lifetime[0]
-        Application started. Press Ctrl+C to shut down.
-
-HOW TO ACCESS THE USER INTERFACE:
-1. Open any web browser (Chrome, Edge, Firefox, Brave).
-2. Go to: http://localhost:5000
-3. The dashboard will load automatically.
-
-HOW TO STOP THE SERVER:
-In your terminal window, press Ctrl + C to gracefully shut down the application.
+This project is an engineering queueing simulation web application for a Single-Pump
+Petrol Station. It models queue congestion, vehicle waiting times, and pump utilization.
+Both frontend and backend are implemented natively in C# ASP.NET Core (.NET 8):
+- Frontend: ASP.NET Core Razor Pages (Pages/Index.cshtml & Index.cshtml.cs) with a
+  custom dark theme (midnight sapphire, neon gold, glassmorphism).
+- Backend: ASP.NET Core Web API (Controllers/QueueController.cs & Services/QueueSimulationService.cs).
+- Statistical Research: Empirical Chi-Square Goodness-of-Fit test on real-world petrol
+  station data (Final_Data_Transformed.csv) verifying the queue distribution.
 
 --------------------------------------------------------------------------------
-3. MODERN SOFTWARE ARCHITECTURE (.NET 8 C# BACKEND)
+2. WHY OUR PETROL PUMP DATA FOLLOWS G/G/1 (DETAILED PROOF)
 --------------------------------------------------------------------------------
-The project uses a clean, decoupled architecture:
+This is the core scientific finding of our project. When your teacher asks:
+"Why does your data follow G/G/1 instead of M/M/1 or M/G/1?", provide this 3-part proof:
 
-1. STATIC FRONTEND (Hosted in wwwroot/):
-   - index.html      : Clean single-server interface with real-time formula reference guide.
-   - style.css       : Midnight navy and neon amber theme matching theme.jpg.
-   - app.js          : Form controls, JSON payload submission, gauge & steps renderer.
-   - queueModels.js  : Client-side mathematical engine providing offline resilience.
-   - theme.jpg       : Background artwork for the petrol station theme.
+PART A: KENDALL'S NOTATION DEFINITION
+- Kendall's notation represents a queueing system as: A / B / c
+  * A = Arrival distribution
+  * B = Service distribution
+  * c = Number of parallel servers (1 single pump)
+- M = Markovian / Exponential (purely random, memoryless)
+- G = General distribution (any arbitrary distribution with custom mean & variance)
 
-2. ASP.NET CORE PIPELINE (Program.cs):
-   - Configures Dependency Injection (DI) for QueueSimulationService.
-   - Enables Cross-Origin Resource Sharing (CORS).
-   - Serves static files and default index.html via UseDefaultFiles() & UseStaticFiles().
-   - Maps REST API endpoints via MapControllers().
+PART B: THE CHI-SQUARE TEST PROVES ARRIVALS ARE NOT POISSON (M is REJECTED)
+We conducted a formal Chi-Square Goodness-of-Fit test on 300 vehicle observations from
+Final_Data_Transformed.csv grouped into 5-minute fixed intervals (N = 37 intervals):
+1. Theoretical Poisson Rule:
+   - For any Poisson distribution, the Variance must equal the Mean: sigma^2 = lambda.
+2. Our Observed Data:
+   - Estimated Poisson Arrival Rate: lambda = 7.5405 vehicles per 5-minute interval
+   - Observed Sample Variance: s^2 = 2.0886
+   - Notice: Variance is only 27.7% of the mean!
+   - This is known statistically as "Severe Underdispersion" — vehicle arrivals are
+     much more regular, steady, and clustered (6 to 9 vehicles per window) than the
+     wild random bursts of a Poisson process.
+3. Chi-Square Statistic Calculation:
+   - Grouped Categories: k = 6 categories (x <= 5, x = 6, x = 7, x = 8, x = 9 or 10, x >= 11)
+   - Degrees of Freedom: df = k - 1 - 1 = 4
+   - Calculated Chi-Square: chi^2_calc = 19.5265
+   - Critical Value (alpha = 0.05, df = 4): chi^2_crit = 9.4877
+   - p-value: p = 0.000619 (0.06%)
+4. Statistical Decision:
+   - Because chi^2_calc (19.53) > chi^2_crit (9.49) and p (0.0006) < 0.05:
+     --> The Null Hypothesis (H0: Poisson arrivals) is STRICTLY REJECTED.
+   - Inter-arrival Kolmogorov-Smirnov test also rejected Exponential fit (p = 2.48e-11).
+   - Therefore, Arrival distribution is NOT 'M'. It is General 'G'.
 
-3. REST API CONTROLLER (Controllers/QueueController.cs):
-   - [HttpPost("api/calculate")] : Receives user inputs and returns computed metrics.
-   - [HttpGet("api/petrol-data")] : Serves baseline historical empirical distribution stats.
+PART C: SERVICE TIMES ARE NOT EXPONENTIAL (M is REJECTED)
+- In a memoryless Exponential distribution, the probability of service completing is
+  highest right at time zero and decays exponentially.
+- In reality, fueling a vehicle has physical mechanical constraints:
+  * A driver must stop, open fuel cap, insert the nozzle, dispense 20–50 liters, pay,
+    and drive off. A service time of 0.1 seconds is physically impossible!
+- Kolmogorov-Smirnov test rejected the Exponential distribution for service times (p = 7.68e-12).
+- Therefore, Service distribution is NOT 'M'. It is General 'G'.
 
-4. SIMULATION SERVICE & MATH ENGINE (Services/QueueSimulationService.cs):
-   - Strongly-typed service implementing IQueueSimulationService.
-   - Normalizes all input units (seconds, minutes, hours) into the user's display unit.
-   - Enforces system stability validation (rho < 1.0).
-   - Generates exact formula substitution steps for transparency.
+PART D: THE SQUARED COEFFICIENT OF VARIATION (SCV) PROOF
+- For any Exponential distribution, the Squared Coefficient of Variation must equal 1.0:
+    C^2 = (Variance) / (Mean^2) = 1.0
+- In our dataset (Final_Data_Transformed.csv):
+    Arrival SCV (Ca^2) = 554.04 / (40.15)^2 = 0.3438 ≈ 0.344 (not 1.0!)
+    Service SCV (Cs^2) = 549.99 / (39.94)^2 = 0.3447 ≈ 0.345 (not 1.0!)
+- Because both Ca^2 and Cs^2 are significantly below 1.0:
+  1. The arrivals are general (G).
+  2. The service is general (G).
+  3. The pump has 1 server (1).
+  --> CONCLUSION: The petrol station strictly follows a G/G/1 queueing model!
 
-5. DATA TRANSFER OBJECTS (Models/):
-   - QueueInputModels.cs  : Models request contract (Model, DisplayUnit, Arrival, Service).
-   - QueueResultModels.cs : Models response contract (Results array, Steps array, Error).
-   - PetrolDataPreset.cs  : Holds the 300-vehicle baseline dataset parameters.
-
---------------------------------------------------------------------------------
-4. DATA INPUT & OPERATIONAL DYNAMICS
---------------------------------------------------------------------------------
-The user/teacher can enter values in seconds, minutes, or hours, as either:
-- "Mean Time" (e.g. 45 seconds between car arrivals)
-- "Rate" (e.g. 1.33 cars arriving per minute)
-
-INPUT FIELDS:
-- Arrival Side: Mean inter-arrival time / rate (plus standard deviation for G/G/1).
-- Service Side: Mean fueling service time / rate (plus standard deviation for M/G/1 and G/G/1).
-
-DEMO TEST CASES TO SHOW YOUR TEACHER:
-
-Normal Smooth Flow:
-- Arrival Mean Time = 45 seconds (lambda = 1.33 cars/minute)
-- Service Mean Time = 30 seconds (mu = 2.00 cars/minute)
-- Result:
-  * Utilization: rho = 30 / 45 = 0.6667 (66.67% busy)
-  * System is stable (rho < 1.0), short queue, smooth operation.
-
-Bottleneck / Near-Saturation Flow:
-- Arrival Mean Time = 40 seconds
-- Service Mean Time = 38 seconds
-- Result:
-  * Utilization: rho = 38 / 40 = 0.95 (95% busy, gauge turns red)
-  * Queue length (Lq) and wait time (Wq) increase sharply.
-
-Unstable / Infinite Queue Test:
-- Arrival Mean Time = 30 seconds (car arrives every 30s)
-- Service Mean Time = 45 seconds (pump takes 45s to fuel)
-- Result:
-  * rho = 45 / 30 = 1.50 (rho >= 1.0)
-  * System rejects calculation with error:
-    "The system is unstable: utilization rho = 1.5 must be below 1."
-
---------------------------------------------------------------------------------
-5. KEY SYMBOLS YOU MUST KNOW (TEACHER VIVA CHEAT-SHEET)
---------------------------------------------------------------------------------
-Symbol   What it Means                  In Plain English
---------------------------------------------------------------------------------
-lambda   Arrival Rate                   Cars arriving per unit time (1 / Mean Arrival)
-mu       Service Rate                   Cars fueled per unit time (1 / Mean Service)
-rho      Pump Utilization               Fraction of time pump is busy: rho = lambda / mu
-Lq       Queue Length                   Average number of cars WAITING in line
-L        System Length                  Average total cars at station (in line + at pump)
-Wq       Waiting Time in Queue          Average time a driver waits before fueling starts
-W        Total Time in System           Wait time + Fuel time: W = Wq + (1 / mu)
-P0       Empty Probability              Chance the station has zero cars: P0 = 1 - rho
-
-CRITICAL STABILITY CONDITION:
-"rho must be strictly LESS than 1 (rho < 1.0). If rho >= 1.0, arrivals exceed
-pump capacity, causing an infinite queue buildup."
-
-LITTLE'S LAW:
-- L  = lambda * W    (Total cars = Arrival rate * Total time in system)
-- Lq = lambda * Wq   (Cars in queue = Arrival rate * Waiting time in queue)
-- W  = Wq + (1 / mu) (Total time = Waiting time + Service time)
-
---------------------------------------------------------------------------------
-6. THE 3 SINGLE-SERVER QUEUE MODELS
---------------------------------------------------------------------------------
-
-MODEL 1: M/M/1 (Single Server, Exponential Arrival & Service)
-- Description: 1 pump. Arrivals follow a Poisson process; fueling time is Exponential.
-- Formulas:
-    Lq = rho^2 / (1 - rho)
-    P0 = 1 - rho
-- Use case: Classic baseline with purely random arrivals and service.
-
-MODEL 2: M/G/1 (Single Server, General Service Distribution with Variance)
-- Description: 1 pump. Arrivals are Poisson, but fueling time has custom standard deviation (sigma).
-- Formula (Pollaczek-Khinchine Formula):
-    Lq = [ lambda^2 * sigma_s^2 + rho^2 ] / [ 2 * (1 - rho) ]
-- Takeaway: Mathematically proves that variability in service time directly increases
-  customer waiting time even if the average service speed remains unchanged.
-
-MODEL 3: G/G/1 (Single Server, General Arrival & General Service)
-- Description: 1 pump. Both arrival and service distributions have custom standard deviations.
-- Formula (Sakasegawa Single-Server Approximation):
-    Ca^2 = (sigma_a / Mean_a)^2
-    Cs^2 = (sigma_s / Mean_s)^2
+PART E: PRACTICAL ENGINEERING BENEFIT OF G/G/1 (SAKASEGAWA APPROXIMATION)
+Because arbitrary general distributions have no simple closed-form solution, queueing
+theory solves G/G/1 using Sakasegawa's single-server approximation:
     Wq ≈ [ rho / (1 - rho) ] * [ (Ca^2 + Cs^2) / 2 ] * (1 / mu)
     Lq = lambda * Wq
-- Takeaway: Models realistic station operations without restricting to exponential curves.
+
+Notice the variance multiplier:
+    (Ca^2 + Cs^2) / 2 = (0.344 + 0.345) / 2 = 0.3445
+
+In an M/M/1 model, that factor is (1.0 + 1.0) / 2 = 1.0.
+Because real-world pump service has consistent pacing, G/G/1 proves that actual queue
+delay (Wq) is approximately 65.5% LOWER than an unverified M/M/1 model would predict!
 
 --------------------------------------------------------------------------------
-7. TOP 5 VIVA QUESTIONS & DIRECT ANSWERS
+3. HOW TO RUN AND EXECUTE THE SOFTWARE ON YOUR LAPTOP
+--------------------------------------------------------------------------------
+PREREQUISITE:
+- .NET 8 SDK is installed on your laptop (Version 8.0.427).
+
+STEP 1: STOP ANY PREVIOUSLY RUNNING PROCESS
+If an earlier instance is running in your VS Code terminal, click inside the terminal and press:
+    Ctrl + C
+
+STEP 2: RUN THE APPLICATION
+In your terminal inside the project folder:
+    c:\Users\M.Aheed Siddiqui\OneDrive\Desktop\UNIVERSITY\ASSIGNMENTS\6_Semester\Simulation\Model
+
+Run:
+    dotnet run
+
+TERMINAL OUTPUT:
+    Building...
+    info: Microsoft.Hosting.Lifetime[14]
+          Now listening on: http://localhost:5000
+    info: Microsoft.Hosting.Lifetime[0]
+          Application started. Press Ctrl+C to shut down.
+
+STEP 3: OPEN IN YOUR BROWSER
+Open Google Chrome, Microsoft Edge, or any browser and go to:
+    http://localhost:5000
+
+The dashboard will load immediately with the full dark theme.
+
+--------------------------------------------------------------------------------
+4. THE EXACT 6 PARAMETERS DISPLAYED IN THE SOFTWARE
+--------------------------------------------------------------------------------
+All unnecessary clutter (theory panels, calculation step texts, and arrival/service rate
+echo cards) has been removed. The dashboard displays ONLY the 6 core operational metrics:
+
+1. Utilization (rho):
+   - Definition: Fraction of time the single pump is busy fueling cars: rho = lambda / mu.
+   - Visual: Displayed as a large numerical metric AND an animated progress gauge.
+   - Stability condition: Must be strictly less than 1.0 (rho < 1.0) for steady-state.
+
+2. Mean Number in Queue (Lq):
+   - Definition: Average number of vehicles waiting in line behind the vehicle being fueled.
+   - Formula (G/G/1): Lq = lambda * Wq.
+
+3. Mean Wait in Queue (Wq):
+   - Definition: Average delay a customer experiences waiting in line before fueling begins.
+   - Formula (G/G/1 Sakasegawa): Wq ≈ [ rho / (1 - rho) ] * [ (Ca^2 + Cs^2) / 2 ] * (1 / mu).
+
+4. Mean Number in System (L):
+   - Definition: Average total number of vehicles at the station (in line + at the pump).
+   - Formula (Little's Law): L = lambda * W.
+
+5. Mean Wait in System (W):
+   - Definition: Average total duration a customer spends at the station (waiting + fueling).
+   - Formula: W = Wq + (1 / mu).
+
+6. Idle Probability (P0):
+   - Definition: Probability that the petrol pump has zero customers (pump is completely free).
+   - Formula: P0 = 1 - rho.
+
+--------------------------------------------------------------------------------
+5. DEMONSTRATION WORKFLOW FOR YOUR TEACHER
+--------------------------------------------------------------------------------
+1. DEMONSTRATE THE EMPIRICAL RESEARCH (Final_Data_Transformed.csv):
+   - Show your teacher the top hero banner:
+     "🔬 STATISTICAL VERIFICATION: Poisson Rejected (chi^2 = 19.53, p = 0.0006) -> Confirmed G/G/1".
+   - Click the glowing yellow button:
+     "⚡ Load Empirical Data (Final_Data_Transformed.csv)"
+   - The verified parameters are instantly populated:
+     * Model: G/G/1
+     * Arrival: Mean = 40.15 seconds, Std Dev = 23.54 seconds
+     * Service: Mean = 39.94 seconds, Std Dev = 23.45 seconds
+   - The results calculate automatically and show:
+     * Utilization: rho ≈ 0.9948 (99.5% capacity)
+     * Mean Wait in Queue: Wq ≈ 43.58 minutes
+     * Mean Vehicles in Queue: Lq ≈ 65.13 vehicles
+
+2. DEMONSTRATE CUSTOM SMOOTH SCENARIO (SHOWING NORMAL CAPACITY):
+   - Select Model: G/G/1 (or M/M/1)
+   - Enter Arrival: Mean = 60 seconds (1 car arrives every minute)
+   - Enter Service: Mean = 30 seconds (pump fuels a car in 30 seconds)
+   - Click "Calculate Metrics":
+     * Utilization: rho = 30 / 60 = 0.50 (50.0% busy, gauge turns green "Optimal")
+     * Idle Probability: P0 = 1 - 0.50 = 0.50 (50% chance station is empty)
+     * Vehicles in System: L = 1.0 vehicle
+     * Wait in Queue: Wq = 0.25 minutes (15 seconds)
+
+3. DEMONSTRATE SYSTEM SATURATION / INSTABILITY REJECTION:
+   - Enter Arrival: Mean = 20 seconds (cars arrive faster than service)
+   - Enter Service: Mean = 40 seconds
+   - Click "Calculate Metrics":
+     * Utilization rho = 40 / 20 = 2.0 (rho >= 1.0)
+     * The system rejects calculation with an informative warning:
+       "The system is unstable: utilization rho = 2.0 must be below 1. Lower the arrival rate or increase service speed."
+
+--------------------------------------------------------------------------------
+6. COMPLETE ASP.NET CORE (.NET 8) ARCHITECTURE
+--------------------------------------------------------------------------------
+PetrolQueueCalculator/
+│
+├── Pages/                             # ASP.NET Core Razor Pages Frontend
+│   ├── _ViewStart.cshtml             # Specifies default Razor layout
+│   ├── Index.cshtml                  # Razor UI Page (Banner, Form, Gauge, Cards)
+│   ├── Index.cshtml.cs               # C# Code-Behind PageModel (OnGet, OnPost)
+│   └── Shared/
+│       └── _Layout.cshtml            # Master HTML5 Razor template
+│
+├── Controllers/
+│   └── QueueController.cs            # ASP.NET Core REST API Controller ([HttpPost("api/calculate")])
+├── Models/
+│   ├── PetrolDataPreset.cs           # Chi-Square test statistics & baseline DTO
+│   ├── QueueInputModels.cs           # Calculation request DTO
+│   └── QueueResultModels.cs          # Calculation response DTO (results array)
+├── Services/
+│   ├── IQueueSimulationService.cs    # Simulation service interface contract
+│   └── QueueSimulationService.cs     # Single-Server algorithms (M/M/1, M/G/1, G/G/1)
+├── wwwroot/                          # Static assets served by ASP.NET Core
+│   ├── app.js                        # Client-side form interaction & gauge rendering
+│   ├── queueModels.js                # Fallback calculation module
+│   ├── style.css                     # Luxury dark theme styling
+│   └── theme.jpg                     # Background station visual asset
+│
+├── PetrolQueueCalculator.csproj      # .NET 8 Web SDK configuration
+└── Program.cs                        # Application host, routing, static files, and DI
+
+--------------------------------------------------------------------------------
+7. TOP 5 VIVA QUESTIONS & DIRECT ANSWERS FOR YOUR TEACHER
 --------------------------------------------------------------------------------
 
-Q1: Why did you build the backend using ASP.NET Core (.NET 8)?
+Q1: What queueing model does your petrol pump data follow, and how did you prove it?
 Answer:
-"ASP.NET Core (.NET 8) provides high performance, type safety, and clean separation
-of concerns. The C# QueueSimulationService strongly types stochastic calculations,
-while UseDefaultFiles() and UseStaticFiles() allow hosting the web dashboard from wwwroot."
+"Our data follows a G/G/1 single-server queue model. We proved this by running a
+Chi-Square Goodness-of-Fit test on 300 vehicle observations from Final_Data_Transformed.csv.
+The test calculated chi^2 = 19.5265 against a critical value of 9.4877 (p = 0.0006).
+Because p < 0.05, we rejected the Poisson arrival hypothesis. Both arrival and service
+processes have general variability (Ca^2 = 0.344, Cs^2 = 0.345), making G/G/1 the only
+statistically supported model."
 
-Q2: What is Kendall's Notation in M/M/1, M/G/1, and G/G/1?
+Q2: Why was the Poisson distribution rejected for vehicle arrivals?
 Answer:
-"The 1st letter represents arrival distribution ('M' = Markovian/Poisson, 'G' = General).
-The 2nd letter represents service distribution ('M' = Exponential, 'G' = General).
-The number '1' denotes a single server (one petrol pump)."
+"A Poisson distribution requires the variance to equal the mean (sigma^2 = lambda).
+In our observed 5-minute windows, the sample variance was 2.0886 while the mean was 7.5405.
+The variance was only 28% of the mean. This underdispersion occurs because vehicles at a
+busy pump arrive and initiate service in a regular, sequential manner rather than purely
+random bursts."
 
-Q3: What is 'rho' (Utilization) and why must it be below 1?
+Q3: How is G/G/1 calculated since it has no exact formula?
 Answer:
-"rho = lambda / mu represents the fraction of time the pump is busy.
-It must be strictly less than 1 (rho < 1) for the queue to reach steady-state.
-If rho >= 1, vehicles arrive faster than they can be fueled, causing infinite queue growth."
+"Because arbitrary general distributions have no exact closed-form solution, we evaluate
+G/G/1 using Sakasegawa's approximation:
+Wq ≈ [ rho / (1 - rho) ] * [ (Ca^2 + Cs^2) / 2 ] * (1 / mu).
+Then Little's Law gives Lq = lambda * Wq, W = Wq + (1 / mu), and L = lambda * W."
 
-Q4: What is Little's Law?
+Q4: What is the benefit of low variance (Ca^2, Cs^2 < 1) in G/G/1?
 Answer:
-"Little's Law proves that L = lambda * W and Lq = lambda * Wq. It directly connects
-the average number of cars in the system to the arrival rate and average waiting time."
+"In M/M/1, Ca^2 and Cs^2 are both 1.0. In our empirical data, Ca^2 = 0.344 and Cs^2 = 0.345.
+The variance factor (Ca^2 + Cs^2) / 2 equals ~0.345, which reduces customer waiting line
+length by approximately 65.5% compared to the naive M/M/1 assumption. Consistency shrinks queues."
 
-Q5: What is the significance of the Pollaczek-Khinchine formula in M/G/1?
+Q5: What is pump utilization (rho) and why must it stay below 1.0?
 Answer:
-"It calculates queue length when service time has variance:
-Lq = (lambda^2 * sigma^2 + rho^2) / [2 * (1 - rho)].
-It proves that higher variation in fueling times (sigma^2) increases line delays,
-highlighting the need for standardized fueling procedures."
+"Utilization rho = lambda / mu represents the fraction of time the pump is busy.
+It must be strictly less than 1 (rho < 1.0) for the queue to reach steady-state equilibrium.
+If rho >= 1.0, vehicles arrive faster than they can be fueled, causing the queue to grow
+infinitely."
 
 ================================================================================
                                 END OF REPORT

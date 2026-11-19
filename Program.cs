@@ -2,11 +2,12 @@ using PetrolQueueCalculator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register controllers and simulation services
+// Register API controllers, Razor Pages, and queue simulation services
 builder.Services.AddControllers();
+builder.Services.AddRazorPages();
 builder.Services.AddScoped<IQueueSimulationService, QueueSimulationService>();
 
-// Enable CORS for local development flexibility
+// Enable CORS for flexibility
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -19,14 +20,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure static files serving from wwwroot/
-// UseDefaultFiles enables serving index.html when browsing to root "/"
+// Configure static files from wwwroot/
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
 app.UseCors();
 
+// Map both API controllers and Razor Pages
 app.MapControllers();
+app.MapRazorPages();
 
 app.Run();

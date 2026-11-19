@@ -37,13 +37,12 @@ function calculate(input) {
   if (rho >= 1)
     throw new Error(`The system is unstable: utilization ρ = ${f(rho)} must be below 1. Lower the arrival rate or increase service speed.`);
 
-  let Lq, p0 = null;
+  let Lq;
 
   if (model === 'MM1') {
     Lq = rho ** 2 / (1 - rho);
-    p0 = 1 - rho;
     steps.push(`Lq = ρ² / (1 - ρ) = ${f(rho)}² / (1 - ${f(rho)}) = ${f(Lq)}`);
-    steps.push(`P0 = 1 - ρ = ${f(p0)}`);
+    steps.push(`P0 = 1 - ρ = ${f(1 - rho)}`);
 
   } else if (model === 'MG1') {                       // Pollaczek-Khinchine
     const v = svc.sd ** 2;
@@ -69,18 +68,16 @@ function calculate(input) {
   steps.push(`W = Wq + 1/μ = ${f(Wq)} + ${f(svc.mean)} = ${f(W)} ${displayUnit}`);
   steps.push(`L = λ × W = ${f(lambda)} × ${f(W)} = ${f(L)} vehicles`);
 
+  const p0 = 1 - rho;
+
   const results = [
-    { key: 'meanIa', label: 'Mean inter-arrival time', value: arr.mean, unit: displayUnit },
-    { key: 'meanSv', label: 'Mean service time', value: svc.mean, unit: displayUnit },
-    { key: 'lambda', label: 'Arrival rate (λ)', value: lambda, unit: `per ${one}` },
-    { key: 'mu', label: 'Service rate (μ)', value: mu, unit: `per ${one}` },
     { key: 'rho', label: 'Utilization (ρ)', value: rho, unit: '' },
-    { key: 'L', label: 'Vehicles in system (L)', value: L, unit: '' },
-    { key: 'Lq', label: 'Vehicles in queue (Lq)', value: Lq, unit: '' },
-    { key: 'W', label: 'Time in system (W)', value: W, unit: displayUnit },
-    { key: 'Wq', label: 'Waiting time (Wq)', value: Wq, unit: displayUnit }
+    { key: 'Lq', label: 'Mean Number in Queue (Lq)', value: Lq, unit: '' },
+    { key: 'Wq', label: 'Mean Wait in Queue (Wq)', value: Wq, unit: displayUnit },
+    { key: 'L', label: 'Mean Number in System (L)', value: L, unit: '' },
+    { key: 'W', label: 'Mean Wait in System (W)', value: W, unit: displayUnit },
+    { key: 'p0', label: 'Idle Probability (P0)', value: p0, unit: '' }
   ];
-  if (p0 !== null) results.push({ key: 'p0', label: 'System empty (P0)', value: p0, unit: '' });
 
   return { model, results, steps };
 }
