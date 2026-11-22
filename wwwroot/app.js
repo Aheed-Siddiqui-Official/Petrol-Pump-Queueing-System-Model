@@ -340,8 +340,7 @@ function setupDiscreteSimulator() {
   });
 
   // Action Buttons
-  $('runSimBtn')?.addEventListener('click', () => handleRunSimulation(false));
-  $('randomRunBtn')?.addEventListener('click', () => handleRunSimulation(true));
+  $('runSimBtn')?.addEventListener('click', handleRunSimulation);
   $('clearSimBtn')?.addEventListener('click', clearSimulator);
   $('copyTraceBtn')?.addEventListener('click', copyTraceTableToClipboard);
 
@@ -381,7 +380,7 @@ function updateSimLabels() {
   }
 }
 
-async function handleRunSimulation(isRandomSeed) {
+async function handleRunSimulation() {
   const arrVal = parseFloat($('simArrValue')?.value);
   const svcVal = parseFloat($('simSvcValue')?.value);
 
@@ -390,19 +389,13 @@ async function handleRunSimulation(isRandomSeed) {
     return;
   }
 
-  let seed = $('simSeed')?.value ? parseInt($('simSeed').value, 10) : null;
-  if (isRandomSeed) {
-    seed = Math.floor(Math.random() * 900000) + 100000;
-    if ($('simSeed')) $('simSeed').value = seed;
-  }
-
   const custCount = parseInt($('simCustomerCount')?.value, 10) || 10;
 
   const simRequest = {
     model: simState.model,
     customerCount: custCount,
     timeUnit: simState.timeUnit,
-    seed: seed,
+    seed: null,
     arrival: {
       unit: simState.timeUnit,
       type: simState.arrType,
@@ -628,7 +621,6 @@ function copyTraceTableToClipboard() {
 function clearSimulator() {
   $('simArrValue').value = '';
   $('simSvcValue').value = '';
-  $('simSeed').value = '';
   const panel = $('simResultPanel');
   if (panel) panel.hidden = true;
 }
