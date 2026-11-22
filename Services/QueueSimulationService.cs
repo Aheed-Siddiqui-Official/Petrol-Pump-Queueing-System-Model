@@ -61,15 +61,13 @@ public class QueueSimulationService : IQueueSimulationService
         }
 
         double lq;
-        double? p0 = null;
 
         switch (model)
         {
             case "MM1":
                 lq = Math.Pow(rho, 2) / (1.0 - rho);
-                p0 = 1.0 - rho;
                 steps.Add($"Lq = ρ² / (1 - ρ) = {F(rho)}² / (1 - {F(rho)}) = {F(lq)}");
-                steps.Add($"P0 = 1 - ρ = {F(p0.Value)}");
+                steps.Add($"P0 = 1 - ρ = {F(1.0 - rho)}");
                 break;
 
             case "MG1": // Pollaczek-Khinchine Formula
