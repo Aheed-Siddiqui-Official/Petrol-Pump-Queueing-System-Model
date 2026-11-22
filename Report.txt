@@ -6,24 +6,39 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
-1. PROJECT ARCHITECTURE & OVERVIEW
+1. PROJECT ARCHITECTURE & REPOSITORY CLEANLINESS
 --------------------------------------------------------------------------------
-This project is an advanced simulation and stochastic modeling platform designed
-specifically for a real-world Petrol Station. It bridges the gap between theoretical
-queueing mathematics and practical discrete-event computer simulation.
+This project is an engineering queueing simulation and performance analysis system
+designed for a Petrol Station. It bridges theoretical queueing formulas with practical
+discrete-event computer simulation.
 
-The entire system is developed in modern C# .NET 8 (ASP.NET Core):
-- Backend API:
-  * Controllers/QueueController.cs: Handles REST endpoints (/api/calculate and /api/simulate).
-  * Services/QueueSimulationService.cs: Implements closed-form Kendall queueing formulas
-    and a discrete-event Monte Carlo simulation engine with parallel server dispatch.
-  * Models/QueueInputModels.cs & Models/QueueResultModels.cs: Strongly-typed data contracts.
-- Frontend Presentation:
-  * Pages/Index.cshtml & Pages/Shared/_Layout.cshtml: Razor Pages with responsive midnight sapphire
-    glassmorphism theme, neon amber accents, and multi-tab operational dashboard.
-  * wwwroot/app.js & wwwroot/queueModels.js: Reactive client controllers supporting both
-    asynchronous backend API calls and offline client-side simulation.
-  * wwwroot/style.css: Bespoke CSS styling for gauges, trace tables, and interactive Gantt charts.
+All legacy and redundant files have been eliminated. The entire repository is strictly
+structured in modern C# .NET 8 (ASP.NET Core):
+
+REPOSITORY STRUCTURE:
+- Controllers/
+  * QueueController.cs: REST endpoints (/api/calculate and /api/simulate).
+- Models/
+  * QueueInputModels.cs: Data transfer objects for queue and simulation requests.
+  * QueueResultModels.cs: Result models, metrics, trace rows, and response schemas.
+  * PetrolDataPreset.cs: Baseline empirical statistics from 300 vehicles.
+- Pages/
+  * Index.cshtml: Razor Pages frontend with dual navigation tabs and research banner.
+  * Index.cshtml.cs: PageModel handling server-side lifecycle.
+  * _ViewStart.cshtml: View initialization setting default layout.
+  * Shared/_Layout.cshtml: Global HTML wrapper with midnight theme styling.
+- Services/
+  * IQueueSimulationService.cs: Service contract for queue calculations and simulation.
+  * QueueSimulationService.cs: Kendall formula evaluations and Monte Carlo simulation.
+- wwwroot/
+  * app.js: Reactive client controller driving UI interactions and animations.
+  * queueModels.js: Client-side mathematical queue and simulation engine.
+  * style.css: Midnight sapphire, glassmorphism, and neon amber dashboard styles.
+  * theme.jpg: Dark luxury background wallpaper.
+- Program.cs: Application startup configuring middleware, static files, and routes.
+- PetrolQueueCalculator.csproj: .NET 8 project configuration.
+- Report.txt: Comprehensive scientific report and examination viva guide.
+- .gitignore: Standard rules ignoring bin/, obj/, and IDE caches.
 
 --------------------------------------------------------------------------------
 2. SYSTEM CAPABILITIES: DUAL OPERATIONAL MODES
@@ -46,6 +61,9 @@ Core Output Parameters Displayed:
 4. Mean Number in System (L): Total expected vehicles (in queue + at pump).
 5. Mean Wait in System (W): Total expected vehicle stay duration.
 6. Idle Probability (P0): Probability that the station is completely empty.
+
+Features an interactive, collapsible "Step-by-Step Mathematical Derivations" card with
+custom numbered circular badges and monospace formula substitutions.
 
 MODE 2: DISCRETE-EVENT SIMULATOR (CUSTOMER-BY-CUSTOMER TRACE & GANTT CHART)
 Implements true discrete-event simulation as taught in university curricula (Jerry Banks):
@@ -72,8 +90,8 @@ Implements true discrete-event simulation as taught in university curricula (Jer
    - Waiting Time in Queue (Wq = SS - A)
    - Server Idle Time
 4. Visual Gantt Chart:
-   - High-fidelity timeline rendering individual customer service blocks across Pump 1 and Pump 2.
-   - Color-coded durations, vehicle identifiers (e.g. V1 [12s]), and idle intervals.
+   - High-fidelity timeline rendering customer service blocks across Pump 1 and Pump 2.
+   - Color-coded durations, vehicle identifiers, and server idle intervals.
 5. Theory vs. Simulation Comparative Analysis:
    - Directly contrasts sample simulated metrics against infinite steady-state theoretical values.
    - Evaluates queue stability (warning if rho >= 1.0 that queue grows unbounded).
@@ -181,7 +199,7 @@ STEP 4: LIVE DEMO WORKFLOW FOR YOUR TEACHER
 3. Tab 2 - Discrete Simulator:
    - Select M/M/1 (1 pump) or M/M/2 (2 pumps).
    - Enter arrival and service parameters and customer count (e.g. 10 or 20).
-   - Click "Run Simulation" or "New Random Run".
+   - Click "Run Simulation".
    - Show your teacher the Simulation Trace Table, the Theory vs Simulation alert,
      and the visual Gantt Chart timeline.
 
