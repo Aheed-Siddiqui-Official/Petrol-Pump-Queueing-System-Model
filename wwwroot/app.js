@@ -23,7 +23,7 @@ const METRIC_CONFIG = {
   Wq:  { icon: '⏳', label: 'Mean Wait in Queue (Wq)', desc: 'Average delay before fueling starts', colorClass: 'metric-wq' },
   L:   { icon: '⛽', label: 'Mean Number in System (L)', desc: 'Total vehicles at station (line + pump)', colorClass: 'metric-l' },
   W:   { icon: '⏱️', label: 'Mean Wait in System (W)', desc: 'Total duration (waiting + fueling)', colorClass: 'metric-w' },
-  p0:  { icon: '💤', label: 'Idle Probability (P0)', desc: 'Probability pump has zero customers', colorClass: 'metric-p0' }
+  p0:  { icon: '💤', label: 'Idle Probability (P₀)', desc: 'Probability pump has zero customers', colorClass: 'metric-p0' }
 };
 
 // ----------------------------------------------------------------------------
@@ -82,8 +82,18 @@ function setupAnalyticalCalculator() {
 
   $('calcBtn')?.addEventListener('click', handleCalculateAnalytical);
   $('clearBtn')?.addEventListener('click', clearAnalyticalForm);
+  $('toggleStepsBtn')?.addEventListener('click', toggleStepsVisibility);
 
   refreshAnalyticalForm();
+}
+
+function toggleStepsVisibility() {
+  const stepsList = $('stepsList');
+  const btn = $('toggleStepsBtn');
+  if (!stepsList || !btn) return;
+  const isHidden = stepsList.style.display === 'none';
+  stepsList.style.display = isHidden ? 'flex' : 'none';
+  btn.textContent = isHidden ? 'Hide Steps' : 'Show Steps';
 }
 
 function refreshAnalyticalForm() {
@@ -256,9 +266,12 @@ function renderAnalyticalResults(data) {
   // Step-by-step
   const stepsBox = $('stepsBox');
   const stepsList = $('stepsList');
+  const toggleBtn = $('toggleStepsBtn');
   if (stepsBox && stepsList && Array.isArray(data.steps) && data.steps.length > 0) {
     stepsBox.hidden = false;
-    stepsList.innerHTML = data.steps.map((s) => `<li>${s}</li>`).join('');
+    stepsList.style.display = 'flex';
+    if (toggleBtn) toggleBtn.textContent = 'Hide Steps';
+    stepsList.innerHTML = data.steps.map((s) => `<li><span>${s}</span></li>`).join('');
   }
 }
 
@@ -269,6 +282,8 @@ function clearAnalyticalResults() {
   if (cards) cards.innerHTML = '';
   const stepsBox = $('stepsBox');
   if (stepsBox) stepsBox.hidden = true;
+  const stepsList = $('stepsList');
+  if (stepsList) stepsList.innerHTML = '';
 }
 
 function clearAnalyticalForm() {

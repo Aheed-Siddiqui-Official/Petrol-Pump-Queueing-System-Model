@@ -701,11 +701,11 @@ select {
 }
 
 .card-title {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--ink-secondary);
+  text-transform: none;
+  letter-spacing: 0.01em;
 }
 
 .card-body {
@@ -1437,4 +1437,111 @@ select {
   color: var(--muted);
   border-top: 1px dashed rgba(255, 255, 255, 0.15);
   padding-top: 4px;
+}
+
+/* ==========================================================================
+   Step-by-Step Mathematical Derivations Card
+   ========================================================================== */
+.steps-box {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--line-subtle);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  animation: fadeInPane 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.steps-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.steps-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.steps-icon {
+  font-size: 1.15rem;
+}
+
+.steps-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.steps-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line-subtle);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.steps-toggle-btn:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 213, 0, 0.4);
+}
+
+.steps-list {
+  list-style: none;
+  counter-reset: step-num;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.steps-list li {
+  counter-increment: step-num;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(7, 12, 30, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  font-family: "JetBrains Mono", "SF Mono", Consolas, "Courier New", monospace;
+  font-size: 0.86rem;
+  color: #f1f5f9;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.steps-list li:hover {
+  background: rgba(14, 24, 54, 0.85);
+  border-color: rgba(255, 213, 0, 0.3);
+  transform: translateX(3px);
+}
+
+.steps-list li::before {
+  content: counter(step-num);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background: rgba(255, 213, 0, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(255, 213, 0, 0.4);
+  border-radius: 50%;
+  font-family: "Inter", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+  flex-shrink: 0;
 }
