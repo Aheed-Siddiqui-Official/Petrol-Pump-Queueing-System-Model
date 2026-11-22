@@ -21,7 +21,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure static files from wwwroot/
-app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
