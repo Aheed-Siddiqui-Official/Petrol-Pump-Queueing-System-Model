@@ -39,6 +39,29 @@ public class QueueController : ControllerBase
     }
 
     /// <summary>
+    /// Executes discrete-event customer-by-customer queue simulation (M/M/1 or M/M/2)
+    /// </summary>
+    [HttpPost("simulate")]
+    [ProducesResponseType(typeof(SimulationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public IActionResult Simulate([FromBody] SimulationRequest request)
+    {
+        try
+        {
+            var response = _queueService.Simulate(request);
+            return Ok(response);
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return BadRequest(new ErrorResponse { Error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ErrorResponse { Error = $"An unexpected error occurred: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
     /// Returns baseline empirical metrics from the 300-vehicle dataset
     /// </summary>
     [HttpGet("petrol-data")]

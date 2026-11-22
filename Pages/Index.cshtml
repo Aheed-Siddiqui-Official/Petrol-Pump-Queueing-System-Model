@@ -1,175 +1,466 @@
 @page
 @model PetrolQueueCalculator.Pages.IndexModel
 @{
-    ViewData["Title"] = "Single-Server Queue Simulator";
+    ViewData["Title"] = "Petrol Station Queue Modeling & Simulation";
 }
 
 <!-- App Header -->
 <header class="app-header">
   <div class="brand-row">
-    <div class="brand-badge"><span class="pump-icon">⛽</span> PETROL STATION QUEUE SIMULATOR</div>
+    <div class="brand-badge"><span class="pump-icon">⛽</span> PETROL STATION QUEUE SYSTEM</div>
     <div class="version-tag">ASP.NET Core (.NET 8)</div>
   </div>
-  <h1><span>Petrol Pump</span> Queue Calculator</h1>
-  <p class="header-subtitle">Stochastic single-server performance analyzer verified with empirical Chi-Square goodness-of-fit testing.</p>
+  <h1><span>Petrol Pump</span> Queue Modeling & Simulation</h1>
+  <p class="header-subtitle">Stochastic analytical performance analyzer (M/M/1, M/G/1, G/G/1) & customer-by-customer discrete-event simulator (M/M/1, M/M/2).</p>
 </header>
 
-<!-- Top Hero Banner: Empirical Research & Chi-Square Test -->
+<!-- Top Empirical Research & Statistical Model Identification Card (Why G/G/1?) -->
 <section class="research-banner" id="researchBanner">
   <div class="research-content">
     <div class="research-header">
-      <span class="research-tag">🔬 STATISTICAL VERIFICATION</span>
-      <span class="research-pill badge-rejected">Poisson Rejected (&chi;&sup2; = 19.53, p = 0.0006)</span>
-      <span class="research-pill badge-model">Confirmed G/G/1 Model</span>
+      <span class="research-tag">🔬 EMPIRICAL VALIDATION & RESEARCH FINDINGS</span>
+      <span class="research-pill badge-model">Confirmed System Model: G/G/1 (c = 1 Pump)</span>
+      <span class="research-pill badge-rejected">Poisson Arrival Rejected (&chi;&sup2; = 19.53, p = 0.0006)</span>
     </div>
-    <p class="research-desc">
-      Goodness-of-Fit tested on <strong>Final_Data_Transformed.csv</strong> (300 vehicles over 6 days): Inter-arrival and service distributions show tight clustering (C<sub>a</sub>&sup2; = 0.344, C<sub>s</sub>&sup2; = 0.345) rather than Poisson memorylessness. The station operates under <strong>General Distributions (G/G/1)</strong>.
-    </p>
-  </div>
-  <div class="research-action">
-    <button id="loadPresetBtn" type="button" class="preset-btn">
-      <span class="btn-icon">⚡</span>
-      <span class="btn-text">
-        <strong>Load Empirical Data</strong>
-        <small>Final_Data_Transformed.csv</small>
-      </span>
-    </button>
+    
+    <div class="research-grid">
+      <div class="research-item">
+        <strong>1. Chi-Square Goodness-of-Fit Test</strong>
+        <p>Tested on 300 vehicles (Final_Data_Transformed.csv). The calculated &chi;&sup2; = 19.53 exceeds critical &chi;&sup2; = 9.49 (p = 0.0006 &lt; 0.05). Poisson memoryless arrivals are strictly rejected due to significant arrival underdispersion (s&sup2; = 2.09 vs &lambda; = 7.54).</p>
+      </div>
+      <div class="research-item">
+        <strong>2. Physical Non-Memoryless Service</strong>
+        <p>Refueling vehicles has physical minimum mechanical constraints (parking, opening fuel cap, nozzle dispensing, billing). Service cannot instantaneously complete at t = 0; memoryless exponential service is physically violated.</p>
+      </div>
+      <div class="research-item">
+        <strong>3. Squared Coefficient of Variation (SCV)</strong>
+        <p>Arrival SCV C<sub>a</sub>&sup2; = 0.344 and Service SCV C<sub>s</sub>&sup2; = 0.345. Both are far below 1.0 (Exponential requires C&sup2; = 1.0). Therefore, the station follows <strong>General Distributions (G/G/1)</strong> via Sakasegawa approximation.</p>
+      </div>
+    </div>
+
+    <!-- Empirical Reference Cheat Sheet (For Teacher / Viva Questions) -->
+    <div class="research-reference-box">
+      <span class="ref-title">📊 Empirical Reference Baseline (300 Vehicles, 6 Days):</span>
+      <span class="ref-pill">Inter-arrival: <strong>40.15s</strong> (&sigma;<sub>a</sub> = 23.54s, C<sub>a</sub>&sup2; = 0.344)</span>
+      <span class="ref-pill">Service: <strong>39.94s</strong> (&sigma;<sub>s</sub> = 23.45s, C<sub>s</sub>&sup2; = 0.345)</span>
+      <span class="ref-pill info-pill">💡 Enter your desired test values below to analyze any custom scenario</span>
+    </div>
   </div>
 </section>
 
-<!-- Two-Column Interactive Layout -->
-<div class="layout">
-  <!-- Left Column: Input Configuration -->
-  <section class="panel input-panel">
-    <div class="panel-header">
-      <h2>Configuration Parameters</h2>
-      <span class="panel-hint">Single Server (c = 1)</span>
-    </div>
+<!-- Main Navigation Tabs -->
+<nav class="nav-tabs">
+  <button id="tabAnalyticalBtn" type="button" class="tab-btn active" data-tab="tab-analytical">
+    <span class="tab-icon">📐</span>
+    <span class="tab-label">Analytical Queueing Models</span>
+    <span class="tab-badge">M/M/1 &bull; M/G/1 &bull; G/G/1</span>
+  </button>
+  <button id="tabSimulationBtn" type="button" class="tab-btn" data-tab="tab-simulation">
+    <span class="tab-icon">🎲</span>
+    <span class="tab-label">Discrete-Event Simulator</span>
+    <span class="tab-badge">M/M/1 &bull; M/M/2 Trace & Gantt</span>
+  </button>
+</nav>
 
-    <div class="form-group">
-      <label for="model">Queueing Model
-        <select id="model"></select>
-      </label>
-    </div>
+<!-- ========================================================================= -->
+<!-- TAB 1: ANALYTICAL QUEUEING MODELS (M/M/1, M/G/1, G/G/1)                  -->
+<!-- ========================================================================= -->
+<div id="tab-analytical" class="tab-pane active">
+  <div class="layout">
+    <!-- Left Column: Input Configuration -->
+    <section class="panel input-panel">
+      <div class="panel-header">
+        <h2>Model Configuration</h2>
+        <span class="panel-hint">Steady-State Formulas</span>
+      </div>
 
-    <!-- Arrival Card -->
-    <div class="sub-panel">
-      <div class="sub-panel-title">
-        <span class="dot-indicator dot-arr"></span>
-        <span id="arrLegend">Arrival Process</span>
-      </div>
-      <div class="form-row two-col">
-        <label>Time unit
-          <select id="arrUnit">
-            <option value="seconds">Seconds (s)</option>
-            <option value="minutes" selected>Minutes (min)</option>
-            <option value="hours">Hours (hr)</option>
-          </select>
-        </label>
-        <label>Input type
-          <select id="arrType">
-            <option value="time">Mean Time</option>
-            <option value="rate">Rate (&lambda;)</option>
-          </select>
-        </label>
-      </div>
-      <div class="form-row">
-        <label><span id="arrValueLabel">Mean inter-arrival time</span>
-          <input id="arrValue" type="number" step="any" min="0" placeholder="e.g. 40.15">
-        </label>
-      </div>
-      <div class="form-row" id="arrSdRow">
-        <label><span id="arrSdLabel">Standard deviation (&sigma;<sub>a</sub>)</span>
-          <input id="arrSd" type="number" step="any" min="0" placeholder="e.g. 23.54">
-        </label>
-      </div>
-    </div>
-
-    <!-- Service Card -->
-    <div class="sub-panel">
-      <div class="sub-panel-title">
-        <span class="dot-indicator dot-svc"></span>
-        <span id="svcLegend">Service Process</span>
-      </div>
-      <div class="form-row two-col">
-        <label>Time unit
-          <select id="svcUnit">
-            <option value="seconds">Seconds (s)</option>
-            <option value="minutes" selected>Minutes (min)</option>
-            <option value="hours">Hours (hr)</option>
-          </select>
-        </label>
-        <label>Input type
-          <select id="svcType">
-            <option value="time">Mean Time</option>
-            <option value="rate">Rate (&mu;)</option>
+      <div class="form-group">
+        <label for="model">Queueing Model
+          <select id="model">
+            <option value="MM1">M/M/1 (Poisson arrivals, Exponential service)</option>
+            <option value="MG1">M/G/1 (Poisson arrivals, General service)</option>
+            <option value="GG1" selected>G/G/1 (General arrivals, General service - Confirmed)</option>
           </select>
         </label>
       </div>
-      <div class="form-row">
-        <label><span id="svcValueLabel">Mean service time</span>
-          <input id="svcValue" type="number" step="any" min="0" placeholder="e.g. 39.94">
-        </label>
-      </div>
-      <div class="form-row" id="svcSdRow">
-        <label><span id="svcSdLabel">Standard deviation (&sigma;<sub>s</sub>)</span>
-          <input id="svcSd" type="number" step="any" min="0" placeholder="e.g. 23.45">
-        </label>
-      </div>
-    </div>
 
-    <div class="form-group">
-      <label for="displayUnit">Output Display Unit
-        <select id="displayUnit">
-          <option value="seconds">Seconds</option>
-          <option value="minutes" selected>Minutes</option>
-          <option value="hours">Hours</option>
-        </select>
-      </label>
-    </div>
-
-    <div class="buttons">
-      <button id="calcBtn" type="button" class="primary-btn">
-        <span>Calculate Metrics</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-      <button id="clearBtn" type="button" class="ghost-btn">Clear</button>
-    </div>
-  </section>
-
-  <!-- Right Column: Results & Performance Insights -->
-  <section class="panel result-panel" id="resultPanel">
-    <div class="panel-header">
-      <h2>Queue Performance Results</h2>
-      <span id="systemStatus" class="status-badge status-ready">Ready</span>
-    </div>
-
-    <p id="message" class="message">Configure your arrival and service rates on the left and click Calculate, or load the empirical data.</p>
-
-    <!-- Gauge Widget -->
-    <div id="gaugeBox" class="gauge-container" hidden>
-      <div class="gaugeHead">
-        <div class="gauge-title-wrap">
-          <span class="gauge-icon">📊</span>
-          <span>Pump Utilization (&rho;)</span>
+      <!-- Arrival Card -->
+      <div class="sub-panel">
+        <div class="sub-panel-title">
+          <span class="dot-indicator dot-arr"></span>
+          <span id="arrLegend">Arrival Process</span>
         </div>
-        <div class="gauge-val-wrap">
-          <strong id="gaugeText">0.0%</strong>
-          <span id="gaugeStatusPill" class="gauge-pill pill-ok">Optimal</span>
+        <div class="form-row two-col">
+          <label>Time unit
+            <select id="arrUnit">
+              <option value="seconds">Seconds (s)</option>
+              <option value="minutes" selected>Minutes (min)</option>
+              <option value="hours">Hours (hr)</option>
+            </select>
+          </label>
+          <label>Input type
+            <select id="arrType">
+              <option value="time">Mean Time</option>
+              <option value="rate">Rate (&lambda;)</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label><span id="arrValueLabel">Mean inter-arrival time</span>
+            <input id="arrValue" type="number" step="any" min="0" placeholder="Enter value (e.g. 40.15)">
+          </label>
+        </div>
+        <div class="form-row" id="arrSdRow">
+          <label><span id="arrSdLabel">Standard deviation (&sigma;<sub>a</sub>)</span>
+            <input id="arrSd" type="number" step="any" min="0" placeholder="Enter std deviation (e.g. 23.54)">
+          </label>
         </div>
       </div>
-      <div class="gauge">
-        <div id="gaugeFill"></div>
-      </div>
-      <div class="gauge-scale">
-        <span>0% (Empty)</span>
-        <span>50%</span>
-        <span>75%</span>
-        <span>100% (Saturated)</span>
-      </div>
-    </div>
 
-    <!-- 6 Clean Result Metric Cards -->
-    <div id="cards" class="cards"></div>
-  </section>
+      <!-- Service Card -->
+      <div class="sub-panel">
+        <div class="sub-panel-title">
+          <span class="dot-indicator dot-svc"></span>
+          <span id="svcLegend">Service Process</span>
+        </div>
+        <div class="form-row two-col">
+          <label>Time unit
+            <select id="svcUnit">
+              <option value="seconds">Seconds (s)</option>
+              <option value="minutes" selected>Minutes (min)</option>
+              <option value="hours">Hours (hr)</option>
+            </select>
+          </label>
+          <label>Input type
+            <select id="svcType">
+              <option value="time">Mean Time</option>
+              <option value="rate">Rate (&mu;)</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label><span id="svcValueLabel">Mean service time</span>
+            <input id="svcValue" type="number" step="any" min="0" placeholder="Enter value (e.g. 39.94)">
+          </label>
+        </div>
+        <div class="form-row" id="svcSdRow">
+          <label><span id="svcSdLabel">Standard deviation (&sigma;<sub>s</sub>)</span>
+            <input id="svcSd" type="number" step="any" min="0" placeholder="Enter std deviation (e.g. 23.45)">
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="displayUnit">Output Display Unit
+          <select id="displayUnit">
+            <option value="seconds">Seconds</option>
+            <option value="minutes" selected>Minutes</option>
+            <option value="hours">Hours</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="buttons">
+        <button id="calcBtn" type="button" class="primary-btn">
+          <span>Calculate Metrics</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <button id="clearBtn" type="button" class="ghost-btn">Clear</button>
+      </div>
+    </section>
+
+    <!-- Right Column: Results & Performance Insights -->
+    <section class="panel result-panel" id="resultPanel">
+      <div class="panel-header">
+        <h2>Queue Performance Results</h2>
+        <span id="systemStatus" class="status-badge status-ready">Ready</span>
+      </div>
+
+      <p id="message" class="message">Enter arrival and service values on the left and click Calculate Metrics.</p>
+
+      <!-- Gauge Widget -->
+      <div id="gaugeBox" class="gauge-container" hidden>
+        <div class="gaugeHead">
+          <div class="gauge-title-wrap">
+            <span class="gauge-icon">📊</span>
+            <span>Pump Utilization (&rho;)</span>
+          </div>
+          <div class="gauge-val-wrap">
+            <strong id="gaugeText">0.0%</strong>
+            <span id="gaugeStatusPill" class="gauge-pill pill-ok">Optimal</span>
+          </div>
+        </div>
+        <div class="gauge">
+          <div id="gaugeFill"></div>
+        </div>
+        <div class="gauge-scale">
+          <span>0% (Empty)</span>
+          <span>50%</span>
+          <span>75%</span>
+          <span>100% (Saturated)</span>
+        </div>
+      </div>
+
+      <!-- 6 Clean Result Metric Cards -->
+      <div id="cards" class="cards"></div>
+
+      <!-- Step-by-Step Math Formulation -->
+      <div id="stepsBox" class="steps-box" hidden>
+        <div class="steps-head">
+          <span class="steps-title">📝 Step-by-Step Mathematical Derivations:</span>
+        </div>
+        <ol id="stepsList" class="steps-list"></ol>
+      </div>
+    </section>
+  </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- TAB 2: DISCRETE-EVENT SIMULATOR (M/M/1, M/M/2 WITH TRACE & GANTT)        -->
+<!-- ========================================================================= -->
+<div id="tab-simulation" class="tab-pane">
+  <div class="sim-container">
+    <!-- Simulation Config Row -->
+    <section class="panel sim-input-panel">
+      <div class="panel-header">
+        <div>
+          <h2>Discrete Simulator Configuration</h2>
+          <p class="sim-header-desc">Customer-by-customer Monte Carlo simulation with random inverse transforms, trace table, and Gantt chart.</p>
+        </div>
+        <div class="sim-model-selector">
+          <button type="button" class="model-toggle-btn active" data-sim-model="MM1">M/M/1 (1 Pump)</button>
+          <button type="button" class="model-toggle-btn" data-sim-model="MM2">M/M/2 (2 Pumps)</button>
+        </div>
+      </div>
+
+      <div class="sim-grid-inputs">
+        <!-- Time Unit Selector -->
+        <div class="sim-unit-row">
+          <span class="input-inline-label">Time Unit:</span>
+          <div class="btn-group-toggle" id="simTimeUnitGroup">
+            <button type="button" class="btn-toggle" data-unit="hours">Hours</button>
+            <button type="button" class="btn-toggle" data-unit="minutes">Minutes</button>
+            <button type="button" class="btn-toggle active" data-unit="seconds">Seconds</button>
+          </div>
+        </div>
+
+        <div class="sim-two-col">
+          <!-- Arrival Input Block -->
+          <div class="sim-card">
+            <div class="sim-card-header">
+              <span class="sim-card-title">👥 Vehicle Arrivals (&lambda;)</span>
+              <div class="btn-group-toggle small" id="simArrTypeGroup">
+                <button type="button" class="btn-toggle" data-type="rate">Rate (&lambda;)</button>
+                <button type="button" class="btn-toggle active" data-type="time">Mean Time</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>
+                <span id="simArrLabel">Mean inter-arrival time (sec)</span>
+                <input id="simArrValue" type="number" step="any" min="0" placeholder="e.g. 1.5">
+              </label>
+            </div>
+            <span class="sim-hint" id="simArrHint">&lambda; is arrival rate per unit. Mean inter-arrival = 1/&lambda;.</span>
+          </div>
+
+          <!-- Service Input Block -->
+          <div class="sim-card">
+            <div class="sim-card-header">
+              <span class="sim-card-title">⛽ Pump Service (&mu;)</span>
+              <div class="btn-group-toggle small" id="simSvcTypeGroup">
+                <button type="button" class="btn-toggle active" data-type="time">Mean Time</button>
+                <button type="button" class="btn-toggle" data-type="rate">Rate (&mu;)</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>
+                <span id="simSvcLabel">Mean service time (sec)</span>
+                <input id="simSvcValue" type="number" step="any" min="0" placeholder="e.g. 2.3">
+              </label>
+            </div>
+            <span class="sim-hint" id="simSvcHint">&mu; is service rate per pump. Mean = 1/&mu;.</span>
+          </div>
+        </div>
+
+        <!-- Simulation Run Settings -->
+        <div class="sim-settings-bar">
+          <div class="setting-item">
+            <label for="simCustomerCount">Number of Vehicles (Customers):
+              <input id="simCustomerCount" type="number" min="3" max="200" value="10">
+            </label>
+          </div>
+          <div class="setting-item">
+            <label for="simSeed">Random Seed (Optional):
+              <input id="simSeed" type="number" placeholder="Random">
+            </label>
+          </div>
+          <div class="sim-action-buttons">
+            <button id="runSimBtn" type="button" class="primary-btn">
+              <span>🚀 Run Simulation</span>
+            </button>
+            <button id="randomRunBtn" type="button" class="ghost-btn">
+              <span>🎲 New Random Run</span>
+            </button>
+            <button id="clearSimBtn" type="button" class="ghost-btn">Clear</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Simulation Results Section (Friend's Layout) -->
+    <section class="panel sim-result-panel" id="simResultPanel" hidden>
+      <!-- Results Top Bar -->
+      <div class="sim-res-header">
+        <div class="sim-title-group">
+          <h2>Simulation Results</h2>
+          <span class="sim-badge badge-complete">✓ Simulation Complete</span>
+          <span id="simModelBadge" class="sim-badge badge-model">M/M/1</span>
+        </div>
+        <div class="sim-clock-summary">
+          <span>Total Simulated Clock: <strong id="simTotalTime">0.00</strong> <span class="sim-unit-txt">sec</span></span>
+        </div>
+      </div>
+
+      <!-- Utilization Bar -->
+      <div class="sim-util-box">
+        <div class="sim-util-header">
+          <span class="sim-util-label">Overall Server Utilization (&rho;)</span>
+          <strong id="simUtilVal" class="sim-util-value">0.00%</strong>
+        </div>
+        <div class="gauge">
+          <div id="simUtilFill" class="sim-gauge-fill"></div>
+        </div>
+        <div class="sim-util-meta">
+          <span id="simUtilFormula">&rho; = &Sigma;Service / (c &times; T) &bull; 10 customers</span>
+          <span id="simServerBreakdown" class="sim-server-breakdown" hidden></span>
+        </div>
+      </div>
+
+      <!-- Theory vs Simulation Alert Box -->
+      <div id="simTheoryAlert" class="sim-theory-alert"></div>
+
+      <!-- Three Category Metric Cards -->
+      <div class="sim-metric-cols">
+        <!-- 1. In Waiting Line -->
+        <div class="sim-stat-card">
+          <h3 class="stat-card-title">IN THE WAITING LINE</h3>
+          <div class="stat-row">
+            <span class="stat-label">Average queue length (L<sub>q</sub>)</span>
+            <strong id="simLqVal" class="stat-num">0.0000</strong>
+            <span class="stat-unit">vehicles</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Average waiting time (W<sub>q</sub>)</span>
+            <strong id="simWqVal" class="stat-num">0.0000</strong>
+            <span class="stat-unit sim-unit-txt">sec</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Average response time</span>
+            <strong id="simResponseTimeVal" class="stat-num">0.0000</strong>
+            <span class="stat-unit sim-unit-txt">sec</span>
+          </div>
+        </div>
+
+        <!-- 2. In The Whole System -->
+        <div class="sim-stat-card">
+          <h3 class="stat-card-title">IN THE WHOLE SYSTEM</h3>
+          <div class="stat-row">
+            <span class="stat-label">Average # in system (L)</span>
+            <strong id="simLVal" class="stat-num">0.0000</strong>
+            <span class="stat-unit">vehicles</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Average turnaround time (W)</span>
+            <strong id="simWVal" class="stat-num">0.0000</strong>
+            <span class="stat-unit sim-unit-txt">sec</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Total simulated time (T)</span>
+            <strong id="simTotalSimVal" class="stat-num">0.00</strong>
+            <span class="stat-unit sim-unit-txt">sec</span>
+          </div>
+        </div>
+
+        <!-- 3. Arrivals, Service & Vehicles -->
+        <div class="sim-stat-card">
+          <h3 class="stat-card-title">ARRIVALS, SERVICE & VEHICLES</h3>
+          <div class="stat-row">
+            <span class="stat-label">Avg inter-arrival time</span>
+            <strong id="simAvgInterArrVal" class="stat-num">0.00</strong>
+            <span class="stat-unit sim-unit-txt">sec</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Avg service time</span>
+            <strong id="simAvgSvcVal" class="stat-num">0.00</strong>
+            <span class="stat-unit sim-unit-txt">sec</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Vehicles who waited</span>
+            <strong id="simWaitedVal" class="stat-num">0 / 0</strong>
+            <span id="simWaitedPct" class="stat-unit">(0.0%)</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Maximum wait in queue</span>
+            <strong id="simMaxWaitVal" class="stat-num">0.00</strong>
+            <span class="stat-unit sim-unit-txt">sec</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Maximum queue length</span>
+            <strong id="simMaxQueueVal" class="stat-num">0</strong>
+            <span class="stat-unit">vehicles</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulation Trace Table -->
+      <div class="trace-container">
+        <div class="trace-head">
+          <div class="trace-title-group">
+            <h3>Simulation Trace Table</h3>
+            <span class="trace-sub" id="traceSubTitle">(10 vehicles, times in sec)</span>
+          </div>
+          <div class="trace-actions">
+            <button id="copyTraceBtn" type="button" class="ghost-btn small">📋 Copy Table</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="sim-table" id="traceTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>RANDOM (ARR)</th>
+                <th>INTER-ARRIVAL</th>
+                <th>ARRIVAL CLOCK</th>
+                <th>RANDOM (SVC)</th>
+                <th>SERVICE TIME</th>
+                <th id="thServer">SERVER</th>
+                <th>START</th>
+                <th>END</th>
+                <th>TURNAROUND (W)</th>
+                <th>WAIT (Wq)</th>
+                <th>IDLE TIME</th>
+              </tr>
+            </thead>
+            <tbody id="traceTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Interactive Gantt Chart Timeline -->
+      <div class="gantt-container">
+        <div class="gantt-header">
+          <div class="gantt-title-group">
+            <h3>Visual Gantt Chart</h3>
+            <span class="gantt-sub" id="ganttSubTitle">(Customer service timelines across pumps)</span>
+          </div>
+        </div>
+        <div id="ganttChart" class="gantt-chart"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+@section Scripts {
+  <script src="~/queueModels.js?v=4"></script>
+  <script src="~/app.js?v=4"></script>
+}
